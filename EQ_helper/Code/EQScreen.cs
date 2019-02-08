@@ -11,6 +11,9 @@ namespace EQ_helper
 {
     public static class EQScreen
     {
+        // TODO: Swap coords based on checkbox
+        // Desktop coords
+        /*
         public static int manaBarXMin = 1541;
         public static int manaBarXMax = 1916;
         public static int manaBarY = 1175;
@@ -29,6 +32,27 @@ namespace EQ_helper
 
         public static int targetConX = 1536;
         public static int targetConY = 1014;
+        */
+
+            // Laptop coords
+        public static int manaBarXMin = 1160;
+        public static int manaBarXMax = 1668;
+        public static int manaBarY = 936;
+
+        public static int healthBarXMin = 1160;
+        public static int healthBarXMax = 1668;
+        public static int healthBarY = 926;
+
+        public static int petHealthBarXMin = 1160;
+        public static int petHealthBarXMax = 1668;
+        public static int petHealthBarY = 930;
+
+        public static int targetHealthBarXMin = 1161;
+        public static int targetHealthBarXMax = 1663;
+        public static int targetHealthBarY = 808;
+
+        public static int targetConX = 1156;
+        public static int targetConY = 808;
 
         // for reference
         private static Color EMPTY_BAR_COLOR = Color.FromArgb(57, 60, 57);
@@ -36,6 +60,10 @@ namespace EQ_helper
         private static Color MANA_COLOR = Color.FromArgb(0, 114, 231);
         private static Color HEALTH_COLOR = Color.FromArgb(217, 0, 0);
         private static Color PET_HEALTH_COLOR = Color.FromArgb(32, 118, 32);
+
+        public static Color SITTING_CHARACTER_COLOR = Color.FromArgb(247, 247, 222);
+        public static Color STANDING_CHARACTER_COLOR = Color.FromArgb(82, 117, 148);
+        public static Color COMBAT_CHARACTER_COLOR = Color.FromArgb(198, 195, 198);
 
         private static IntPtr eqWindowHandle = IntPtr.Zero;
 

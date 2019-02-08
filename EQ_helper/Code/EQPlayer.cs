@@ -17,6 +17,11 @@ namespace EQ_helper
             // BUFFING_SELF,
             PREPARED_FOR_BATTLE,
 
+            PREPARED_FOR_BATTLE_NIGHT,
+            PREPARED_FOR_BATTLE_DAY,
+
+            LEVEL_UP_SKILL,
+
             PYZJN_FOUND,
             NO_PYZJN_FOUND,
 
@@ -46,7 +51,7 @@ namespace EQ_helper
 
         public void KickOffCoreLoop()
         {
-            soundPlayer.Play();
+            //soundPlayer.Play();
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
@@ -57,6 +62,11 @@ namespace EQ_helper
         {
             bool taskResult = await task;
             return taskResult ? successState : failureState;
+        }
+
+        PlayerState ChangeStateBasedOnBool(bool boolToCheck, PlayerState successState, PlayerState failureState)
+        {
+            return boolToCheck ? successState : failureState;
         }
 
         async Task<bool> CoreGameplayLoopTask()
@@ -83,10 +93,29 @@ namespace EQ_helper
                     // BUFFING_PET,
                     // BUFFING_SELF,
                     case PlayerState.PREPARED_FOR_BATTLE:
-                        updateStatus("Prepared for battle, looking for Pyzjn");
+                        updateStatus("Prepared for battle, checking day/night");
+                        EQState currentEQState = EQState.GetCurrentEQState();
+                        currentPlayerState = ChangeStateBasedOnBool(currentEQState.minutesSinceMidnight < 21 || currentEQState.minutesSinceMidnight > 57,
+                            PlayerState.PREPARED_FOR_BATTLE_NIGHT,
+                            PlayerState.PREPARED_FOR_BATTLE_DAY);
+                        break;
+                    case PlayerState.PREPARED_FOR_BATTLE_NIGHT:
+                        updateStatus("NIGHT looking for Pyzjn");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
                             PlayerState.PYZJN_FOUND,
                             PlayerState.NO_PYZJN_FOUND);
+                        break;
+                    case PlayerState.PREPARED_FOR_BATTLE_DAY:
+                        updateStatus("DAY looking for Pyzjn");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
+                            PlayerState.PYZJN_FOUND,
+                            PlayerState.LEVEL_UP_SKILL);
+                        break;
+                    case PlayerState.LEVEL_UP_SKILL:
+                        updateStatus("Leveling up skill");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LevelUpSkillTask(),
+                            PlayerState.PREPARED_FOR_BATTLE,
+                            PlayerState.PREPARED_FOR_BATTLE);
                         break;
                     case PlayerState.PYZJN_FOUND:
                         updateStatus("PYZJN_FOUND");

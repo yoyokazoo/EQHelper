@@ -229,15 +229,14 @@ namespace EQ_helper
         {
             await HideCorpsesTask();
 
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(2000);
-            // give time to make sure after hitting esc nothing that aggroed gets falsely put as target
+            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
             EQState currentState = EQState.GetCurrentEQState();
             if (currentState.targetInfo.con != MonsterCon.NONE) { return false; }
 
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(100);
+            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
             Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
             currentState = EQState.GetCurrentEQState();
-            if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
+            if (currentState.targetInfo.con != MonsterCon.NONE && currentState.characterState != EQState.CharacterState.COMBAT) { return true; }
 
             return false;
         }
@@ -340,6 +339,13 @@ namespace EQ_helper
 
                 await RestUntilFullManaTask();
             }
+
+            return true;
+        }
+
+        public static async Task<bool> LevelUpSkillTask()
+        {
+            Keyboard.KeyPress(Keys.Oemplus); await Task.Delay(3500);
 
             return true;
         }

@@ -50,17 +50,19 @@ namespace EQ_helper
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            var webhookUrl = new Uri("https://hooks.slack.com/services/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");
-            var slackClient = new SlackClient(webhookUrl);
-            var message = "TESTING BEEP BEEP";
-            slackClient.SendMessageAsync(message);
+            //var webhookUrl = new Uri("https://hooks.slack.com/services/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");
+            //var slackClient = new SlackClient(webhookUrl);
+            //var message = "TESTING BEEP BEEP";
+            //slackClient.SendMessageAsync(message);
 
             //player.KickOffSpamZero();
             //DamageShieldBotTask();
-            //Bitmap bmTest = GetEQBitmap();
-            //Console.WriteLine("BMTest width = " + bmTest.Width + " " + bmTest.Height);
+            Bitmap bmTest = EQScreen.GetEQBitmap();
 
-            //ScreenCapture.CaptureWindowToFile(GetEQWindowHandle(), "Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+            Console.WriteLine("BMTest width = " + bmTest.Width + " " + bmTest.Height);
+            ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+
+            EQState currentEQState = EQState.GetCurrentEQState();
         }
 
         private void labelStatus5_Click(object sender, EventArgs e)
