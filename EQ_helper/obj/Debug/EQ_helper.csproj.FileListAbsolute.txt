@@ -24,9 +24,11 @@ C:\Users\Peter\Documents\EQHelper\EQ_helper\bin\Debug\Newtonsoft.Json.pdb
 C:\Users\Peter\Documents\EQHelper\EQ_helper\bin\Debug\Newtonsoft.Json.xml
 C:\Users\Peter\Documents\EQHelper\EQ_helper\bin\Debug\WindowsInput.pdb
 C:\Users\Peter\Documents\EQHelper\EQ_helper\bin\Debug\WindowsInput.xml
-C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csprojResolveAssemblyReference.cache
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.Form1.resources
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.Properties.Resources.resources
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.GenerateResource.Cache
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.exe
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.pdb
+C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csprojAssemblyReference.cache
+C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.CoreCompileInputs.cache
+C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.CopyComplete

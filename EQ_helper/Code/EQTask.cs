@@ -126,12 +126,26 @@ namespace EQ_helper
         public static async Task<bool> NukeUntilDeadTask()
         {
             EQState currentState = EQState.GetCurrentEQState();
-            while (currentState.targetHealth > 0.00)
+            int nukeAttempts = 1;
+            while (currentState.targetHealth > 0.00 && nukeAttempts < 15)
             {
+                nukeAttempts++;
                 await NukeTask();
                 currentState = EQState.GetCurrentEQState();
             }
 
+            return true;
+        }
+
+        public static async Task<bool> EnterCombatTask()
+        {
+            Keyboard.KeyPress(Keys.Q); await Task.Delay(100);
+            return true;
+        }
+
+        public static async Task<bool> DeselectTargetTask()
+        {
+            Keyboard.KeyPress(Keys.Escape); await Task.Delay(100);
             return true;
         }
 
@@ -205,6 +219,7 @@ namespace EQ_helper
 
         public static async Task<bool> FindNearestTargetTask()
         {
+             Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
             int findTargetAttempts = 1;
             int maxFindAttempts = 100;
             while (findTargetAttempts <= 100)
@@ -241,6 +256,8 @@ namespace EQ_helper
             return false;
         }
 
+        // Macro should be close to
+        // /target a_
         public static async Task<bool> FindAnyTargetWithMacroTask()
         {
             await HideCorpsesTask();
@@ -273,6 +290,36 @@ namespace EQ_helper
                 await Task.Delay(1000);
                 currentState = EQState.GetCurrentEQState();
             }
+
+            return true;
+        }
+
+        public static async Task<bool> PetBackTask()
+        {
+            // pull back
+            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
+
+            return true;
+        }
+
+        public static async Task<bool> GTFOTask()
+        {
+            // pull back
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
 
             return true;
         }
@@ -352,21 +399,9 @@ namespace EQ_helper
 
         public static async Task<bool> DamageShieldBotTask()
         {
-            await FocusOnEQWindowTask();
-
-            while (true)
-            {
-                bool findTargetResult = await FindAnyTargetWithMacroTask();
-
-                if(findTargetResult)
-                {
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(5000);
-                }
-
-                await RestUntilFullManaTask();
-            }
+            Keyboard.KeyPress(Keys.D1); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.D1); await Task.Delay(500);
+            Keyboard.KeyPress(Keys.D1); await Task.Delay(5000);
 
             return true;
         }
