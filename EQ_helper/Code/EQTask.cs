@@ -260,8 +260,6 @@ namespace EQ_helper
         // /target a_
         public static async Task<bool> FindAnyTargetWithMacroTask()
         {
-            await HideCorpsesTask();
-
             int findTargetAttempts = 1;
             while (findTargetAttempts < 20)
             {

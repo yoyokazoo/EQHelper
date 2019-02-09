@@ -191,7 +191,8 @@ namespace EQ_helper
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
-                        bool foundTargetResult = await EQTask.FindNearestTargetTask();
+                        //bool foundTargetResult = await EQTask.FindNearestTargetTask();
+                        bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
                             PlayerState.CASTING_DMG_SHIELD_ON_PET,
                             PlayerState.CHECK_COMBAT_STATUS);
@@ -211,7 +212,7 @@ namespace EQ_helper
                             await EQTask.DamageShieldBotTask();
                         }
                         await Task.Delay(500);
-                        await EQTask.FindNearestTargetTask();
+                        await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = PlayerState.PULL_WITH_NUKE;
                         // set timer
                         /*
@@ -225,6 +226,7 @@ namespace EQ_helper
                         updateStatus("NUKE PULLING");
                         await EQTask.NukeTask(); await Task.Delay(500);
                         await EQTask.EnterCombatTask();
+                        await EQTask.NukeTask(); await Task.Delay(500);
                         currentPlayerState = PlayerState.PULL_WITH_PET_OUT;
                         break;
                     case PlayerState.PULL_WITH_PET_OUT:
