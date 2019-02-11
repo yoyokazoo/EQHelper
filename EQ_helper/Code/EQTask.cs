@@ -186,6 +186,9 @@ namespace EQ_helper
             // Wait for Buff to Finish
             await Task.Delay(8000);
 
+            // deselect pet
+            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
+
             return true;
         }
 

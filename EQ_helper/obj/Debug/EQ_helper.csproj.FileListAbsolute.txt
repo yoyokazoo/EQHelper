@@ -29,6 +29,4 @@ C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.Properties.Resou
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.GenerateResource.Cache
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.exe
 C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.pdb
-C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csprojAssemblyReference.cache
-C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.CoreCompileInputs.cache
-C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csproj.CopyComplete
+C:\Users\Peter\Documents\EQHelper\EQ_helper\obj\Debug\EQ_helper.csprojResolveAssemblyReference.cache
