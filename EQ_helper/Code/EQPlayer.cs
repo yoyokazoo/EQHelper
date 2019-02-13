@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
+using System.IO;
+using System.Threading;
 
 namespace EQ_helper
 {
@@ -80,6 +83,7 @@ namespace EQ_helper
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
+            ListenForTells();
             CoreGameplayLoopTask();
         }
 
@@ -97,6 +101,56 @@ namespace EQ_helper
         public static bool CurrentTimeInsideDuration(long startTime, long duration)
         {
             return (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime) < duration;
+        }
+
+        static void ListenForTells()
+        {
+            new Thread(() =>
+            {
+                Thread.CurrentThread.IsBackground = true;
+
+                String path = @"C:\Users\Peter\Desktop\eq\everquest_rof2\Logs\eqlog_Yoyokazoo_EQ Reborn.txt";
+                // https://hooks.slack.com/services/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 // croc-bot incoming
+
+                //[Sun Feb 10 18:16:02 2019] Ghaleon tells you, 'neil is gettin close to my place'
+                Regex tellRx = new Regex(@"\[.*\] ([^\s]*) tells you, \'(.*)\'", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var sr = new StreamReader(fs, Encoding.Default))
+                {
+                    while (sr.ReadLine() != null) { }
+
+                    while (true)
+                    {
+                        string line = sr.ReadLine();
+                        if (line != null)
+                        {
+                            Match tellMatch = tellRx.Match(line);
+
+                            if (tellMatch.Success)
+                            {
+                                string name = tellMatch.Groups[1].Value;
+                                string message = tellMatch.Groups[2].Value;
+
+                                if (message.Contains("Master."))
+                                {
+
+                                }
+                                else
+                                {
+                                    Console.WriteLine("You were sent a tell from " + name + " " + "'" + message + "'");
+
+                                    var webhookUrl = new Uri("https://hooks.slack.com/services/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");
+                                    var slackClient = new SlackClient(webhookUrl);
+                                    var slackMessage = name + " sent you a tell: " + message;
+                                    slackClient.SendMessageAsync(slackMessage);
+                                }
+                            }
+
+                        }
+                    }
+                }
+            }).Start();
         }
 
         async Task<bool> CoreGameplayLoopTask()
@@ -180,7 +234,7 @@ namespace EQ_helper
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
                         await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        currentPlayerState = PlayerState.PREPARED_FOR_BATTLE_NIGHT;
                         // set timer
                         /*
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.ApplyPetBuffTask(),
@@ -188,6 +242,12 @@ namespace EQ_helper
                             PlayerState.PREPARED_FOR_BATTLE)
                             )
                             */
+                        break;
+                    case PlayerState.PREPARED_FOR_BATTLE_NIGHT:
+                        updateStatus("NIGHT looking for Pyzjn");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
+                            PlayerState.PYZJN_FOUND,
+                            PlayerState.FINDING_SUITABLE_TARGET);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -245,12 +305,7 @@ namespace EQ_helper
                             PlayerState.PREPARED_FOR_BATTLE_NIGHT,
                             PlayerState.PREPARED_FOR_BATTLE_DAY);
                         break;
-                    case PlayerState.PREPARED_FOR_BATTLE_NIGHT:
-                        updateStatus("NIGHT looking for Pyzjn");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
-                            PlayerState.PYZJN_FOUND,
-                            PlayerState.NO_PYZJN_FOUND);
-                        break;
+                    
                     case PlayerState.PREPARED_FOR_BATTLE_DAY:
                         updateStatus("DAY looking for Pyzjn");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
@@ -268,7 +323,7 @@ namespace EQ_helper
                         int timesToAlert = 100;
                         while (timesToAlert > 0)
                         {
-                            soundPlayer.Play();
+                            //soundPlayer.Play();
                             if(timesToAlert % 50 == 0)
                             {
                                 var webhookUrl = new Uri("https://hooks.slack.com/services/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");
