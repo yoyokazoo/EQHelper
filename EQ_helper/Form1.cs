@@ -60,14 +60,17 @@ namespace EQ_helper
             //player.KickOffSpamZero();
             //DamageShieldBotTask();
 
-            /*
+            Mouse.Move(703, 634);
+            Mouse.ButtonDown(Mouse.MouseKeys.Left); Thread.Sleep(50);
+            Mouse.ButtonUp(Mouse.MouseKeys.Left); Thread.Sleep(50);
+
             Bitmap bmTest = EQScreen.GetEQBitmap();
 
             Console.WriteLine("BMTest width = " + bmTest.Width + " " + bmTest.Height);
             ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
 
             EQState currentEQState = EQState.GetCurrentEQState();
-            */
+            
         }
 
         private void labelStatus5_Click(object sender, EventArgs e)

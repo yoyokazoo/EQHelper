@@ -27,6 +27,27 @@ namespace EQ_helper
         [DllImport("User32.dll")]
         static extern int SetForegroundWindow(IntPtr point);
 
+        const Keys DAMAGE_SHIELD_KEY = Keys.D1;
+        const Keys FIND_NORMAL_MOB_KEY = Keys.D2;
+        const Keys PET_ATTACK_KEY = Keys.D3;
+        const Keys PET_BACK_KEY = Keys.D4;
+        const Keys NUKE_KEY = Keys.D5;
+        const Keys REST_KEY = Keys.D6;//Keys.Control|Keys.S; // This should work??
+        const Keys LOOT_KEY = Keys.D7;
+        const Keys BUFF_PET_KEY = Keys.D8;
+        const Keys HIDE_CORPSES_KEY = Keys.D9;
+        const Keys FIND_SPECIAL_MOB_KEY = Keys.D0;
+        const Keys HEAL_PET_KEY = Keys.Subtract;
+        const Keys GATE_KEY = Keys.Oemplus;
+
+        const Keys TARGET_NEAREST_MOB_KEY = Keys.F8;
+        const Keys RESELECT_PREVIOUS_TARGET_KEY = Keys.F9;
+        const Keys TARGET_NEAREST_CORPSE_KEY = Keys.F10;
+        const Keys CHANGE_CAMERA_ANGLE_KEY = Keys.F11;
+
+        const Keys ENTER_COMBAT_KEY = Keys.Q;
+        const Keys DESELECT_TARGETS_KEY = Keys.Escape;
+
         public static async Task<bool> FocusOnEQWindowTask()
         {
             IntPtr h = EQScreen.GetEQWindowHandle();
@@ -109,16 +130,31 @@ namespace EQ_helper
             await PetAttackTask();
             await NukeUntilDeadTask();
 
-            await LootCorpseTask();
+            await LootCoinTask();
 
             return true;
         }
 
-        public static async Task<bool> LootCorpseTask()
+        public static async Task<bool> LootCoinTask()
         {
-            Keyboard.KeyPress(Keys.F10); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D7); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(500);
+            Keyboard.KeyPress(TARGET_NEAREST_CORPSE_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(LOOT_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(500);
+
+            return true;
+        }
+
+        public static async Task<bool> LootAllTask()
+        {
+            Keyboard.KeyPress(TARGET_NEAREST_CORPSE_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(LOOT_KEY); await Task.Delay(1500);
+
+            Mouse.Move(703, 634);
+            Mouse.ButtonDown(Mouse.MouseKeys.Left); await Task.Delay(50);
+            Mouse.ButtonUp(Mouse.MouseKeys.Left); await Task.Delay(50);
+            await Task.Delay(2500);
+
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(500);
 
             return true;
         }
@@ -127,7 +163,7 @@ namespace EQ_helper
         {
             EQState currentState = EQState.GetCurrentEQState();
             int nukeAttempts = 1;
-            while (currentState.targetHealth > 0.00 && nukeAttempts < 15)
+            while (currentState.targetHealth > 0.00 && nukeAttempts < 50)
             {
                 nukeAttempts++;
                 await NukeTask();
@@ -139,13 +175,13 @@ namespace EQ_helper
 
         public static async Task<bool> EnterCombatTask()
         {
-            Keyboard.KeyPress(Keys.Q); await Task.Delay(100);
+            Keyboard.KeyPress(ENTER_COMBAT_KEY); await Task.Delay(100);
             return true;
         }
 
         public static async Task<bool> DeselectTargetTask()
         {
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(100);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(100);
             return true;
         }
 
@@ -166,10 +202,9 @@ namespace EQ_helper
 
         public static async Task<bool> NukeTask()
         {
-            Keyboard.KeyPress(Keys.D5); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D5); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D5); await Task.Delay(1000);
-            await Task.Delay(5000);
+            Keyboard.KeyPress(NUKE_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(NUKE_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(NUKE_KEY); await Task.Delay(1000);
 
             return true;
         }
@@ -177,17 +212,17 @@ namespace EQ_helper
         public static async Task<bool> ApplyPetBuffTask()
         {
             // Put Buff On Pet
-            Keyboard.KeyPress(Keys.D8); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D8); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D8); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D8); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D8); await Task.Delay(1000);
+            Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
 
             // Wait for Buff to Finish
             await Task.Delay(8000);
 
             // deselect pet
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
 
             return true;
         }
@@ -195,9 +230,9 @@ namespace EQ_helper
         public static async Task<bool> ApplyDamageShieldTask()
         {
             // Put Shield On Pet
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(1000);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(1000);
 
             // Wait for Buff to Finish
             await Task.Delay(8000);
@@ -208,27 +243,27 @@ namespace EQ_helper
         public static async Task<bool> HideCorpsesTask()
         {
             // Hide Corpses
-            Keyboard.KeyPress(Keys.D9); await Task.Delay(2000);
+            Keyboard.KeyPress(HIDE_CORPSES_KEY); await Task.Delay(2000);
 
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(500);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(500);
             return false;
         }
 
         public static async Task<bool> RetargetFoundTargetTask()
         {
-            Keyboard.KeyPress(Keys.F9); await Task.Delay(500);
+            Keyboard.KeyPress(RESELECT_PREVIOUS_TARGET_KEY); await Task.Delay(500);
             return true;
         }
 
         public static async Task<bool> FindNearestTargetTask()
         {
-             Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
+             Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
             int findTargetAttempts = 1;
             int maxFindAttempts = 100;
             while (findTargetAttempts <= 100)
             {
                 // Find Target
-                Keyboard.KeyPress(Keys.F8); await Task.Delay(500);
+                Keyboard.KeyPress(TARGET_NEAREST_MOB_KEY); await Task.Delay(500);
                 EQState currentState = EQState.GetCurrentEQState();
                 if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
                 findTargetAttempts++;
@@ -236,7 +271,7 @@ namespace EQ_helper
                 if(findTargetAttempts % 10 == 0)
                 {
                     // change camera view
-                    Keyboard.KeyPress(Keys.F11); await Task.Delay(500);
+                    //Keyboard.KeyPress(CHANGE_CAMERA_ANGLE_KEY); await Task.Delay(500);
                 }
             }
 
@@ -247,12 +282,12 @@ namespace EQ_helper
         {
             await HideCorpsesTask();
 
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
             EQState currentState = EQState.GetCurrentEQState();
             if (currentState.targetInfo.con != MonsterCon.NONE) { return false; }
 
-            Keyboard.KeyPress(Keys.Escape); await Task.Delay(200);
-            Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
+            Keyboard.KeyPress(FIND_SPECIAL_MOB_KEY); await Task.Delay(500);
             currentState = EQState.GetCurrentEQState();
             if (currentState.targetInfo.con != MonsterCon.NONE && currentState.characterState != EQState.CharacterState.COMBAT) { return true; }
 
@@ -267,7 +302,7 @@ namespace EQ_helper
             while (findTargetAttempts < 20)
             {
                 // Find Target
-                Keyboard.KeyPress(Keys.D2); await Task.Delay(2000);
+                Keyboard.KeyPress(FIND_NORMAL_MOB_KEY); await Task.Delay(2000);
                 EQState currentState = EQState.GetCurrentEQState();
                 if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
                 findTargetAttempts++;
@@ -279,7 +314,7 @@ namespace EQ_helper
         public static async Task<bool> PetAttackTask()
         {
             // Find Target
-            Keyboard.KeyPress(Keys.D3); await Task.Delay(500);
+            Keyboard.KeyPress(PET_ATTACK_KEY); await Task.Delay(500);
 
             // wait until they hit target
             EQState currentState = EQState.GetCurrentEQState();
@@ -287,7 +322,7 @@ namespace EQ_helper
             while (currentState.targetHealth > 0.98 && attackTargetAttempts <= 10)
             {
                 attackTargetAttempts++;
-                if(attackTargetAttempts % 3 == 0) { Keyboard.KeyPress(Keys.D3); }
+                if(attackTargetAttempts % 3 == 0) { Keyboard.KeyPress(PET_ATTACK_KEY); }
                 await Task.Delay(1000);
                 currentState = EQState.GetCurrentEQState();
             }
@@ -298,10 +333,10 @@ namespace EQ_helper
         public static async Task<bool> PetBackTask()
         {
             // pull back
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
 
             return true;
         }
@@ -309,18 +344,10 @@ namespace EQ_helper
         public static async Task<bool> GTFOTask()
         {
             // pull back
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.Add); await Task.Delay(9000);
+            for (int i = 0; i < 100; i++)
+            {
+                Keyboard.KeyPress(GATE_KEY); await Task.Delay(500);
+            }
 
             return true;
         }
@@ -328,9 +355,9 @@ namespace EQ_helper
         public static async Task<bool> PetPullTask()
         {
             // Find Target
-            Keyboard.KeyPress(Keys.D3); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D3); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D3); await Task.Delay(500);
+            Keyboard.KeyPress(PET_ATTACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_ATTACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_ATTACK_KEY); await Task.Delay(500);
 
             // wait until they hit target
             EQState currentState = EQState.GetCurrentEQState();
@@ -341,10 +368,10 @@ namespace EQ_helper
             }
 
             // pull back
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(1000);
-            Keyboard.KeyPress(Keys.D4); await Task.Delay(1000);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(1000);
 
             // wait till they get back
             await Task.Delay(1000);
@@ -359,7 +386,7 @@ namespace EQ_helper
             if (currentState.mana >= manaThreshold) { return true; }
 
             // rest
-            Keyboard.KeyPress(Keys.D6); await Task.Delay(1000);
+            Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
             while (currentState.mana < manaThreshold) {
                 await Task.Delay(1000);
                 currentState = EQState.GetCurrentEQState();
@@ -379,9 +406,9 @@ namespace EQ_helper
                 EQState currentState = EQState.GetCurrentEQState();
                 while (currentState.mana > 0.10)
                 {
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(500);
-                    Keyboard.KeyPress(Keys.D0); await Task.Delay(8000);
+                    Keyboard.KeyPress(FIND_SPECIAL_MOB_KEY); await Task.Delay(500);
+                    Keyboard.KeyPress(FIND_SPECIAL_MOB_KEY); await Task.Delay(500);
+                    Keyboard.KeyPress(FIND_SPECIAL_MOB_KEY); await Task.Delay(8000);
                     currentState = EQState.GetCurrentEQState();
                 }
 
@@ -393,16 +420,16 @@ namespace EQ_helper
 
         public static async Task<bool> LevelUpSkillTask()
         {
-            Keyboard.KeyPress(Keys.Oemplus); await Task.Delay(3500);
+            Keyboard.KeyPress(GATE_KEY); await Task.Delay(3500);
 
             return true;
         }
 
         public static async Task<bool> DamageShieldBotTask()
         {
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(500);
-            Keyboard.KeyPress(Keys.D1); await Task.Delay(5000);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(500);
+            Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(5000);
 
             return true;
         }
