@@ -148,9 +148,45 @@ namespace EQ_helper
                             }
 
                         }
+                        Thread.Sleep(50);
                     }
                 }
             }).Start();
+        }
+
+        async Task<bool> DmgShieldLoopTask()
+        {
+            updateStatus("Kicking off core gameplay loop");
+            EQState currentEQState = EQState.GetCurrentEQState();
+            currentPlayerState = PlayerState.WAITING_FOR_MANA;
+
+            while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
+            {
+                // always update EQState here?
+                switch (currentPlayerState)
+                {
+                    case PlayerState.WAITING_FOR_MANA:
+                        updateStatus("Resting for mana");
+                        await EQTask.RestUntilFullManaTask();
+                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        break;
+                    case PlayerState.FINDING_SUITABLE_TARGET:
+                        updateStatus("Finding Suitable Target");
+                        bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
+                        currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
+                            PlayerState.CASTING_DMG_SHIELD_ON_PET,
+                            PlayerState.FINDING_SUITABLE_TARGET);
+                        break;
+                    case PlayerState.CASTING_DMG_SHIELD_ON_PET:
+                        updateStatus("Casting Damage Shield on Pet");
+                        await EQTask.DamageShieldBotTask();
+                        await Task.Delay(500);
+                        currentPlayerState = PlayerState.WAITING_FOR_MANA;
+                        break;
+                }
+            }
+
+            return true;
         }
 
         async Task<bool> CoreGameplayLoopTask()
@@ -326,7 +362,7 @@ namespace EQ_helper
                             //soundPlayer.Play();
                             if(timesToAlert % 50 == 0)
                             {
-                                var webhookUrl = new Uri("https://hooks.slack.com/services/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");
+                                var webhookUrl = new Uri("https://hooks.slack.com/services/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");
                                 var slackClient = new SlackClient(webhookUrl);
                                 var message = "PYZJN_FOUND";
                                 slackClient.SendMessageAsync(message);
@@ -334,6 +370,8 @@ namespace EQ_helper
                             timesToAlert--;
                             await Task.Delay(2000);
                         }
+                        currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
+                        await EQTask.CampTask();
                         break;
                     case PlayerState.NO_PYZJN_FOUND:
                         updateStatus("No pyzjn found, finding target");
