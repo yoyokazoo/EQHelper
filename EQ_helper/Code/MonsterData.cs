@@ -41,7 +41,7 @@ namespace EQ_helper
         public static MonsterInfo GREEN_MONSTER_INFO = new MonsterInfo(     Color.FromArgb(0, 112, 0),      MonsterCon.GREEN,       "Green");
         public static MonsterInfo DARK_BLUE_MONSTER_INFO = new MonsterInfo( Color.FromArgb(0, 56, 222),     MonsterCon.DARK_BLUE,   "Dark Blue");
         public static MonsterInfo WHITE_MONSTER_INFO = new MonsterInfo(     Color.FromArgb(209, 210, 209),  MonsterCon.WHITE,       "White");
-        public static MonsterInfo YELLOW_MONSTER_INFO = new MonsterInfo(    Color.FromArgb(0, 0, 0),        MonsterCon.YELLOW,      "Yellow");
+        public static MonsterInfo YELLOW_MONSTER_INFO = new MonsterInfo(    Color.FromArgb(209, 210, 0),        MonsterCon.YELLOW,      "Yellow");
         public static MonsterInfo RED_MONSTER_INFO = new MonsterInfo(       Color.FromArgb(209, 0, 0),      MonsterCon.RED,         "Red");
 
         public static MonsterInfo getInfoFromColor(Color colorToCheck)

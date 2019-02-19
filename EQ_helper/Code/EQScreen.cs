@@ -13,30 +13,38 @@ namespace EQ_helper
     {
         // TODO: Swap coords based on checkbox
         // Desktop coords
-        /*
-        public static int manaBarXMin = 1541;
-        public static int manaBarXMax = 1916;
-        public static int manaBarY = 1175;
+        const int HP_BAR_TOPLEFT_X = 1542;
+        const int HP_BAR_TOPRIGHT_X = 1917;
+        const int HP_BAR_TOPLEFT_Y = 1164;
 
-        public static int healthBarXMin = 1541;
-        public static int healthBarXMax = 1916;
-        public static int healthBarY = 1165;
+        const int TARGET_BAR_TOPLEFT_X = 1541;
+        const int TARGET_BAR_TOPRIGHT_X = 1914;
+        const int TARGET_BAR_TOPLEFT_Y = 1012;
+        
 
-        public static int targetHealthBarXMin = 1541;
-        public static int targetHealthBarXMax = 1914;
-        public static int targetHealthBarY = 1014;
+        public static int healthBarXMin = HP_BAR_TOPLEFT_X;
+        public static int healthBarXMax = HP_BAR_TOPRIGHT_X;
+        public static int healthBarY = HP_BAR_TOPLEFT_Y;
 
-        public static int petHealthBarXMin = 1541;
-        public static int petHealthBarXMax = 1916;
-        public static int petHealthBarY = 1169;
+        public static int petHealthBarXMin = HP_BAR_TOPLEFT_X;
+        public static int petHealthBarXMax = HP_BAR_TOPRIGHT_X;
+        public static int petHealthBarY = HP_BAR_TOPLEFT_Y + 4;
 
-        public static int targetConX = 1536;
-        public static int targetConY = 1014;
-        */
+        public static int manaBarXMin = HP_BAR_TOPLEFT_X;
+        public static int manaBarXMax = HP_BAR_TOPRIGHT_X;
+        public static int manaBarY = HP_BAR_TOPLEFT_Y + 10;
+
+        public static int targetHealthBarXMin = TARGET_BAR_TOPLEFT_X;
+        public static int targetHealthBarXMax = TARGET_BAR_TOPRIGHT_X;
+        public static int targetHealthBarY = TARGET_BAR_TOPLEFT_Y;
+
+        public static int targetConX = TARGET_BAR_TOPLEFT_X - 5;
+        public static int targetConY = TARGET_BAR_TOPLEFT_Y;
+        
         
 
             // Laptop coords
-            
+            /*
         public static int manaBarXMin = 1160;
         public static int manaBarXMax = 1668;
         public static int manaBarY = 936;
@@ -54,7 +62,7 @@ namespace EQ_helper
         public static int targetHealthBarY = 808;
 
         public static int targetConX = 1156;
-        public static int targetConY = 808;
+        public static int targetConY = 808;*/
 
         // for reference
         private static Color EMPTY_BAR_COLOR = Color.FromArgb(57, 60, 57);
