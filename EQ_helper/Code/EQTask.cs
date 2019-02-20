@@ -440,5 +440,13 @@ namespace EQ_helper
 
             return true;
         }
+
+        public static async Task<bool> CampTask()
+        {
+            Keyboard.KeyPress(Keys.Add); await Task.Delay(1000);
+
+
+            return true;
+        }
     }
 }
