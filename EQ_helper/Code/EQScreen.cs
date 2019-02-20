@@ -13,6 +13,7 @@ namespace EQ_helper
     {
         // TODO: Swap coords based on checkbox
         // Desktop coords
+        /*
         const int HP_BAR_TOPLEFT_X = 1542;
         const int HP_BAR_TOPRIGHT_X = 1917;
         const int HP_BAR_TOPLEFT_Y = 1164;
@@ -20,7 +21,17 @@ namespace EQ_helper
         const int TARGET_BAR_TOPLEFT_X = 1541;
         const int TARGET_BAR_TOPRIGHT_X = 1914;
         const int TARGET_BAR_TOPLEFT_Y = 1012;
-        
+        */
+
+        // Laptop coords
+        const int HP_BAR_TOPLEFT_X = 1160;
+        const int HP_BAR_TOPRIGHT_X = 1668;
+        const int HP_BAR_TOPLEFT_Y = 926;
+
+        const int TARGET_BAR_TOPLEFT_X = 1161;
+        const int TARGET_BAR_TOPRIGHT_X = 1663;
+        const int TARGET_BAR_TOPLEFT_Y = 808;
+
 
         public static int healthBarXMin = HP_BAR_TOPLEFT_X;
         public static int healthBarXMax = HP_BAR_TOPRIGHT_X;
@@ -40,29 +51,6 @@ namespace EQ_helper
 
         public static int targetConX = TARGET_BAR_TOPLEFT_X - 5;
         public static int targetConY = TARGET_BAR_TOPLEFT_Y;
-        
-        
-
-            // Laptop coords
-            /*
-        public static int manaBarXMin = 1160;
-        public static int manaBarXMax = 1668;
-        public static int manaBarY = 936;
-
-        public static int healthBarXMin = 1160;
-        public static int healthBarXMax = 1668;
-        public static int healthBarY = 926;
-
-        public static int petHealthBarXMin = 1160;
-        public static int petHealthBarXMax = 1668;
-        public static int petHealthBarY = 930;
-
-        public static int targetHealthBarXMin = 1161;
-        public static int targetHealthBarXMax = 1663;
-        public static int targetHealthBarY = 808;
-
-        public static int targetConX = 1156;
-        public static int targetConY = 808;*/
 
         // for reference
         private static Color EMPTY_BAR_COLOR = Color.FromArgb(57, 60, 57);
