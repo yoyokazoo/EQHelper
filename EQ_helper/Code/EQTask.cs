@@ -299,10 +299,10 @@ namespace EQ_helper
         public static async Task<bool> FindAnyTargetWithMacroTask()
         {
             int findTargetAttempts = 1;
-            while (findTargetAttempts < 20)
+            while (findTargetAttempts < 5)
             {
                 // Find Target
-                Keyboard.KeyPress(FIND_NORMAL_MOB_KEY); await Task.Delay(2000);
+                Keyboard.KeyPress(FIND_NORMAL_MOB_KEY); await Task.Delay(1000);
                 EQState currentState = EQState.GetCurrentEQState();
                 if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
                 findTargetAttempts++;
@@ -363,7 +363,7 @@ namespace EQ_helper
             EQState currentState = EQState.GetCurrentEQState();
             while (currentState.targetHealth > 0.98)
             {
-                await Task.Delay(2000);
+                await Task.Delay(300);
                 currentState = EQState.GetCurrentEQState();
             }
 
@@ -374,7 +374,7 @@ namespace EQ_helper
             Keyboard.KeyPress(PET_BACK_KEY); await Task.Delay(1000);
 
             // wait till they get back
-            await Task.Delay(1000);
+            await Task.Delay(500);
 
             return true;
         }

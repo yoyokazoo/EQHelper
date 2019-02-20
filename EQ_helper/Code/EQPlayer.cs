@@ -304,15 +304,14 @@ namespace EQ_helper
                     case PlayerState.PREPARED_FOR_BATTLE:
                         updateStatus("Prepared for battle, checking day/night");
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.minutesSinceMidnight < 21 || currentEQState.minutesSinceMidnight > 57,
-                            PlayerState.PREPARED_FOR_BATTLE_NIGHT,
-                            PlayerState.PREPARED_FOR_BATTLE_DAY);
+                            PlayerState.PREPARED_FOR_BATTLE_DAY,
+                            PlayerState.PREPARED_FOR_BATTLE_DAY); // because I target with macro now, just kill all the skellies
                         break;
-
                     case PlayerState.PREPARED_FOR_BATTLE_DAY:
                         updateStatus("DAY looking for Pyzjn");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
                             PlayerState.PYZJN_FOUND,
-                            PlayerState.CHECK_COMBAT_STATUS);
+                            PlayerState.NO_PYZJN_FOUND);
                         break;
                     case PlayerState.PYZJN_FOUND:
                         updateStatus("PYZJN_FOUND");
@@ -346,8 +345,8 @@ namespace EQ_helper
                     case PlayerState.WAITING_FOR_PET_TO_KILL:
                         updateStatus("Waiting for pet to kill");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.WaitUntilDeadTask(),
-                            PlayerState.CHECK_COMBAT_STATUS,
-                            PlayerState.CHECK_COMBAT_STATUS);
+                            PlayerState.ATTEMPT_TO_LOOT,
+                            PlayerState.ATTEMPT_TO_LOOT);
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
