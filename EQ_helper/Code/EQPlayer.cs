@@ -83,8 +83,9 @@ namespace EQ_helper
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
-            //ListenForTells();
-            ClericLoopTask();
+            ListenForTells();
+            //ClericLoopTask();
+            PyzjnLoopTask();
             //CoreGameplayLoopTask();
         }
 
@@ -201,6 +202,117 @@ namespace EQ_helper
                         //bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
                             PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.ATTEMPT_TO_LOOT:
+                        updateStatus("Attempting to loot");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootAllTask(),
+                            PlayerState.HIDE_CORPSES,
+                            PlayerState.HIDE_CORPSES);
+                        break;
+                    case PlayerState.HIDE_CORPSES:
+                        updateStatus("Hiding Corpses");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.HideCorpsesTask(),
+                            PlayerState.CHECK_COMBAT_STATUS,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                }
+            }
+
+            updateStatus("Exited Core Gameplay ");
+            return true;
+        }
+
+        async Task<bool> PyzjnLoopTask()
+        {
+            updateStatus("Kicking off cleric loop");
+            EQState currentEQState = EQState.GetCurrentEQState();
+
+            while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
+            {
+                // always update EQState here?
+                switch (currentPlayerState)
+                {
+                    case PlayerState.WAITING_TO_FOCUS:
+                        updateStatus("Focusing on EQ Window");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FocusOnEQWindowTask(),
+                            PlayerState.FOCUSED_ON_EQ_WINDOW,
+                            PlayerState.EXITING_CORE_GAMEPLAY_LOOP);
+                        break;
+                    case PlayerState.FOCUSED_ON_EQ_WINDOW:
+                        updateStatus("Focused on EQ Window");
+                        currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
+                        break;
+                    case PlayerState.CHECK_COMBAT_STATUS:
+                        updateStatus("Focused on EQ Window");
+                        currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.CASTING_BURNOUT_ON_PET);
+                        break;
+                    case PlayerState.KILLING_TARGET_ASAP:
+                        updateStatus("Killing target ASAP");
+                        await EQTask.PetAttackTask();
+                        await EQTask.EnterCombatTask();
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
+                            PlayerState.ATTEMPT_TO_LOOT,
+                            PlayerState.ATTEMPT_TO_LOOT);
+                        break;
+                    case PlayerState.CASTING_BURNOUT_ON_PET:
+                        updateStatus("Casting burnout on pet and setting timer");
+                        if (!CurrentTimeInsideDuration(lastBurnoutCastTime, BURNOUT_TIME_MILLIS))
+                        {
+                            lastBurnoutCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            await EQTask.ApplyPetBuffTask();
+                            await EQTask.RestTask();
+                        }
+                        currentPlayerState = PlayerState.PREPARED_FOR_BATTLE;
+                        break;
+                    case PlayerState.PREPARED_FOR_BATTLE:
+                        updateStatus("Prepared for battle, checking day/night");
+                        currentPlayerState = ChangeStateBasedOnBool(currentEQState.minutesSinceMidnight < 21 || currentEQState.minutesSinceMidnight > 57,
+                            PlayerState.PREPARED_FOR_BATTLE_NIGHT,
+                            PlayerState.PREPARED_FOR_BATTLE_DAY);
+                        break;
+
+                    case PlayerState.PREPARED_FOR_BATTLE_DAY:
+                        updateStatus("DAY looking for Pyzjn");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
+                            PlayerState.PYZJN_FOUND,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.PYZJN_FOUND:
+                        updateStatus("PYZJN_FOUND");
+                        int timesToAlert = 100;
+                        while (timesToAlert > 0)
+                        {
+                            //soundPlayer.Play();
+                            if (timesToAlert % 50 == 0)
+                            {
+                                var webhookUrl = new Uri("https://hooks.slack.com/services/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");
+                                var slackClient = new SlackClient(webhookUrl);
+                                var message = "PYZJN_FOUND";
+                                slackClient.SendMessageAsync(message);
+                            }
+                            timesToAlert--;
+                            await Task.Delay(2000);
+                        }
+                        break;
+                    case PlayerState.NO_PYZJN_FOUND:
+                        updateStatus("No pyzjn found, finding target");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindAnyTargetWithMacroTask(),
+                            PlayerState.TARGET_FOUND,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.TARGET_FOUND:
+                        updateStatus("Target found, sending pet");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.PetAttackTask(),
+                            PlayerState.WAITING_FOR_PET_TO_KILL,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.WAITING_FOR_PET_TO_KILL:
+                        updateStatus("Waiting for pet to kill");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.WaitUntilDeadTask(),
+                            PlayerState.CHECK_COMBAT_STATUS,
                             PlayerState.CHECK_COMBAT_STATUS);
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:

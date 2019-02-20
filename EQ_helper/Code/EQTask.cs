@@ -395,6 +395,13 @@ namespace EQ_helper
             return true;
         }
 
+        public static async Task<bool> RestTask()
+        {
+            // rest
+            Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
+            return true;
+        }
+
         public static async Task<bool> SpamZeroTask(int fullManaBarsToSpam)
         {
             await FocusOnEQWindowTask();
