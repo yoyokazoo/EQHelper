@@ -17,6 +17,9 @@ namespace EQ_helper
         private static long DMG_SHIELD_TIME_MILLIS = (long)(2 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(2 * 60 * 60 * 1000); // - 30 secs
+        private long lastFarmingLimitTime = 0;
+
         public enum PlayerState {
             WAITING_TO_FOCUS,
             FOCUSED_ON_EQ_WINDOW,
@@ -61,6 +64,8 @@ namespace EQ_helper
             HIDE_CORPSES,
 
             MURDERING_EVERYTHING,
+
+            CHECK_FARMING_TIME_LIMIT,
 
             EXITING_CORE_GAMEPLAY_LOOP,
         }
@@ -176,6 +181,14 @@ namespace EQ_helper
                     case PlayerState.FOCUSED_ON_EQ_WINDOW:
                         updateStatus("Focused on EQ Window");
                         await EQTask.HideCorpsesTask();
+                        currentPlayerState = PlayerState.CHECK_FARMING_TIME_LIMIT;
+                        break;
+                    case PlayerState.CHECK_FARMING_TIME_LIMIT:
+                        updateStatus("Checking farming time limit");
+                        if (!CurrentTimeInsideDuration(lastFarmingLimitTime, FARMING_LIMIT_TIME_MILLIS))
+                        {
+                            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        }
                         currentPlayerState = PlayerState.WAITING_FOR_MANA;
                         break;
                     case PlayerState.WAITING_FOR_MANA:
@@ -183,7 +196,7 @@ namespace EQ_helper
                         await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
                             PlayerState.FINDING_SUITABLE_TARGET,
-                            PlayerState.WAITING_FOR_MANA);
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -201,12 +214,13 @@ namespace EQ_helper
                         }
                         await Task.Delay(5000);
                         await EQTask.DeselectTargetTask();
-                        currentPlayerState = PlayerState.WAITING_FOR_MANA;
+                        currentPlayerState = PlayerState.CHECK_FARMING_TIME_LIMIT;
                         break;
                 }
             }
 
-            updateStatus("Exited Core Gameplay ");
+            updateStatus("Exited Core Gameplay, attempting to camp");
+            await EQTask.CampTask();
             return true;
         }
 
@@ -230,6 +244,14 @@ namespace EQ_helper
                         await EQTask.HideCorpsesTask();
                         currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
                         break;
+                    case PlayerState.CHECK_FARMING_TIME_LIMIT:
+                        updateStatus("Checking farming time limit");
+                        if (!CurrentTimeInsideDuration(lastFarmingLimitTime, FARMING_LIMIT_TIME_MILLIS))
+                        {
+                            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                        }
+                        currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
+                        break;
                     case PlayerState.CHECK_COMBAT_STATUS:
                         updateStatus("Focused on EQ Window");
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
@@ -249,7 +271,7 @@ namespace EQ_helper
                         await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
                             PlayerState.CASTING_BURNOUT_ON_PET,
-                            PlayerState.CHECK_COMBAT_STATUS);
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                     case PlayerState.CASTING_BURNOUT_ON_PET:
                         updateStatus("Casting burnout on pet and setting timer");
@@ -278,13 +300,14 @@ namespace EQ_helper
                     case PlayerState.HIDE_CORPSES:
                         updateStatus("Hiding Corpses");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.HideCorpsesTask(),
-                            PlayerState.CHECK_COMBAT_STATUS,
-                            PlayerState.CHECK_COMBAT_STATUS);
+                            PlayerState.CHECK_FARMING_TIME_LIMIT,
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                 }
             }
 
-            updateStatus("Exited Core Gameplay ");
+            updateStatus("Exited Core Gameplay, attempting to camp");
+            await EQTask.CampTask();
             return true;
         }
 
