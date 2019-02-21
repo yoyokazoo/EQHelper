@@ -11,27 +11,14 @@ namespace EQ_helper
 {
     public static class EQScreen
     {
-        // TODO: Swap coords based on checkbox
-        // Desktop coords
-        /*
-        const int HP_BAR_TOPLEFT_X = 1542;
-        const int HP_BAR_TOPRIGHT_X = 1917;
-        const int HP_BAR_TOPLEFT_Y = 1164;
-
-        const int TARGET_BAR_TOPLEFT_X = 1541;
-        const int TARGET_BAR_TOPRIGHT_X = 1914;
-        const int TARGET_BAR_TOPLEFT_Y = 1012;
-        */
-
         // Laptop coords
-        const int HP_BAR_TOPLEFT_X = 1160;
-        const int HP_BAR_TOPRIGHT_X = 1668;
-        const int HP_BAR_TOPLEFT_Y = 926;
+        public static int HP_BAR_TOPLEFT_X = 1160;
+        public static int HP_BAR_TOPRIGHT_X = 1668;
+        public static int HP_BAR_TOPLEFT_Y = 926;
 
-        const int TARGET_BAR_TOPLEFT_X = 1161;
-        const int TARGET_BAR_TOPRIGHT_X = 1663;
-        const int TARGET_BAR_TOPLEFT_Y = 808;
-
+        public static int TARGET_BAR_TOPLEFT_X = 1161;
+        public static int TARGET_BAR_TOPRIGHT_X = 1663;
+        public static int TARGET_BAR_TOPLEFT_Y = 808;
 
         public static int healthBarXMin = HP_BAR_TOPLEFT_X;
         public static int healthBarXMax = HP_BAR_TOPRIGHT_X;
@@ -64,6 +51,50 @@ namespace EQ_helper
         public static Color COMBAT_CHARACTER_COLOR = Color.FromArgb(198, 195, 198);
 
         private static IntPtr eqWindowHandle = IntPtr.Zero;
+
+        public static void SetComputer(bool laptop)
+        {
+            // TODO: clean this up, pass in a struct
+            if(laptop)
+            {
+                HP_BAR_TOPLEFT_X = 1160;
+                HP_BAR_TOPRIGHT_X = 1668;
+                HP_BAR_TOPLEFT_Y = 926;
+
+                TARGET_BAR_TOPLEFT_X = 1161;
+                TARGET_BAR_TOPRIGHT_X = 1663;
+                TARGET_BAR_TOPLEFT_Y = 808;   
+            }
+            else
+            {
+                HP_BAR_TOPLEFT_X = 1542;
+                HP_BAR_TOPRIGHT_X = 1917;
+                HP_BAR_TOPLEFT_Y = 1164;
+
+                TARGET_BAR_TOPLEFT_X = 1541;
+                TARGET_BAR_TOPRIGHT_X = 1914;
+                TARGET_BAR_TOPLEFT_Y = 1012;
+            }
+
+            healthBarXMin = HP_BAR_TOPLEFT_X;
+            healthBarXMax = HP_BAR_TOPRIGHT_X;
+            healthBarY = HP_BAR_TOPLEFT_Y;
+
+            petHealthBarXMin = HP_BAR_TOPLEFT_X;
+            petHealthBarXMax = HP_BAR_TOPRIGHT_X;
+            petHealthBarY = HP_BAR_TOPLEFT_Y + 4;
+
+            manaBarXMin = HP_BAR_TOPLEFT_X;
+            manaBarXMax = HP_BAR_TOPRIGHT_X;
+            manaBarY = HP_BAR_TOPLEFT_Y + 10;
+
+            targetHealthBarXMin = TARGET_BAR_TOPLEFT_X;
+            targetHealthBarXMax = TARGET_BAR_TOPRIGHT_X;
+            targetHealthBarY = TARGET_BAR_TOPLEFT_Y;
+
+            targetConX = TARGET_BAR_TOPLEFT_X - 5;
+            targetConY = TARGET_BAR_TOPLEFT_Y;
+    }
 
         public static Bitmap GetEQBitmap()
         {
