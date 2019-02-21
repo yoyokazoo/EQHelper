@@ -92,7 +92,7 @@ namespace EQ_helper
             manaBarXMax = HP_BAR_TOPRIGHT_X;
             manaBarY = HP_BAR_TOPLEFT_Y + 10;
 
-            characterStateX = HP_BAR_TOPLEFT_X + 366;
+            characterStateX = HP_BAR_TOPRIGHT_X - 9;
             characterStateY = HP_BAR_TOPLEFT_Y - 25;
 
             targetHealthBarXMin = TARGET_BAR_TOPLEFT_X;
