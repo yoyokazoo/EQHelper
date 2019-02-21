@@ -83,7 +83,7 @@ namespace EQ_helper
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
-            //EQScreen.
+            EQScreen.SetComputer(false);
 
             ListenForTells();
             DruidLoopTask();
@@ -214,6 +214,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.FOCUSED_ON_EQ_WINDOW:
                         updateStatus("Focused on EQ Window");
+                        await EQTask.HideCorpsesTask();
                         currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
                         break;
                     case PlayerState.CHECK_COMBAT_STATUS:
@@ -233,7 +234,9 @@ namespace EQ_helper
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
                         await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
+                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.CHECK_COMBAT_STATUS);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");

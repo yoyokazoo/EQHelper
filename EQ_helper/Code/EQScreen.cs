@@ -16,28 +16,31 @@ namespace EQ_helper
         public static int HP_BAR_TOPRIGHT_X = 1668;
         public static int HP_BAR_TOPLEFT_Y = 926;
 
-        public static int TARGET_BAR_TOPLEFT_X = 1161;
-        public static int TARGET_BAR_TOPRIGHT_X = 1663;
-        public static int TARGET_BAR_TOPLEFT_Y = 808;
+        public static int TARGET_BAR_TOPLEFT_X;
+        public static int TARGET_BAR_TOPRIGHT_X;
+        public static int TARGET_BAR_TOPLEFT_Y;
 
-        public static int healthBarXMin = HP_BAR_TOPLEFT_X;
-        public static int healthBarXMax = HP_BAR_TOPRIGHT_X;
-        public static int healthBarY = HP_BAR_TOPLEFT_Y;
+        public static int healthBarXMin;
+        public static int healthBarXMax;
+        public static int healthBarY;
 
-        public static int petHealthBarXMin = HP_BAR_TOPLEFT_X;
-        public static int petHealthBarXMax = HP_BAR_TOPRIGHT_X;
-        public static int petHealthBarY = HP_BAR_TOPLEFT_Y + 4;
+        public static int petHealthBarXMin;
+        public static int petHealthBarXMax;
+        public static int petHealthBarY;
 
-        public static int manaBarXMin = HP_BAR_TOPLEFT_X;
-        public static int manaBarXMax = HP_BAR_TOPRIGHT_X;
-        public static int manaBarY = HP_BAR_TOPLEFT_Y + 10;
+        public static int manaBarXMin;
+        public static int manaBarXMax;
+        public static int manaBarY;
 
-        public static int targetHealthBarXMin = TARGET_BAR_TOPLEFT_X;
-        public static int targetHealthBarXMax = TARGET_BAR_TOPRIGHT_X;
-        public static int targetHealthBarY = TARGET_BAR_TOPLEFT_Y;
+        public static int characterStateX;
+        public static int characterStateY;
 
-        public static int targetConX = TARGET_BAR_TOPLEFT_X - 5;
-        public static int targetConY = TARGET_BAR_TOPLEFT_Y;
+        public static int targetHealthBarXMin;
+        public static int targetHealthBarXMax;
+        public static int targetHealthBarY;
+
+        public static int targetConX;
+        public static int targetConY;
 
         // for reference
         private static Color EMPTY_BAR_COLOR = Color.FromArgb(57, 60, 57);
@@ -49,6 +52,7 @@ namespace EQ_helper
         public static Color SITTING_CHARACTER_COLOR = Color.FromArgb(247, 247, 222);
         public static Color STANDING_CHARACTER_COLOR = Color.FromArgb(82, 117, 148);
         public static Color COMBAT_CHARACTER_COLOR = Color.FromArgb(198, 195, 198);
+        public static Color POISONED_CHARACTER_COLOR = Color.FromArgb(148, 215, 0);
 
         private static IntPtr eqWindowHandle = IntPtr.Zero;
 
@@ -67,9 +71,9 @@ namespace EQ_helper
             }
             else
             {
-                HP_BAR_TOPLEFT_X = 1542;
-                HP_BAR_TOPRIGHT_X = 1917;
-                HP_BAR_TOPLEFT_Y = 1164;
+                HP_BAR_TOPLEFT_X = 1538;
+                HP_BAR_TOPRIGHT_X = 1913;
+                HP_BAR_TOPLEFT_Y = 1163;
 
                 TARGET_BAR_TOPLEFT_X = 1541;
                 TARGET_BAR_TOPRIGHT_X = 1914;
@@ -87,6 +91,9 @@ namespace EQ_helper
             manaBarXMin = HP_BAR_TOPLEFT_X;
             manaBarXMax = HP_BAR_TOPRIGHT_X;
             manaBarY = HP_BAR_TOPLEFT_Y + 10;
+
+            characterStateX = HP_BAR_TOPLEFT_X + 366;
+            characterStateY = HP_BAR_TOPLEFT_Y - 25;
 
             targetHealthBarXMin = TARGET_BAR_TOPLEFT_X;
             targetHealthBarXMax = TARGET_BAR_TOPRIGHT_X;

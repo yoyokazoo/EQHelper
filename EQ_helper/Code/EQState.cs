@@ -22,6 +22,7 @@ namespace EQ_helper
             SITTING,
             STANDING,
             COMBAT,
+            POISONED,
             UNKNOWN
         }
         public CharacterState characterState;
@@ -68,11 +69,12 @@ namespace EQ_helper
         }
         public static CharacterState GetCharacterState(Bitmap bm)
         {
-            Color characterPixel = bm.GetPixel(1659, 902); // clean me up
+            Color characterPixel = bm.GetPixel(EQScreen.characterStateX, EQScreen.characterStateY);//bm.GetPixel(1659, 902); // clean me up
 
             if (Color.Equals(characterPixel, EQScreen.SITTING_CHARACTER_COLOR)) { return CharacterState.SITTING; }
             if (Color.Equals(characterPixel, EQScreen.STANDING_CHARACTER_COLOR)) { return CharacterState.STANDING; }
             if (Color.Equals(characterPixel, EQScreen.COMBAT_CHARACTER_COLOR)) { return CharacterState.COMBAT; }
+            if (Color.Equals(characterPixel, EQScreen.POISONED_CHARACTER_COLOR)) { return CharacterState.POISONED; }
 
             return CharacterState.UNKNOWN;
         }

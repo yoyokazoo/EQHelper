@@ -383,14 +383,18 @@ namespace EQ_helper
         {
             float manaThreshold = 0.98f;
             float hpThreshold = 0.98f;
+
             EQState currentState = EQState.GetCurrentEQState();
-            if (currentState.mana >= manaThreshold || currentState.health >= hpThreshold) { return true; }
+            if (currentState.mana >= manaThreshold && currentState.health >= hpThreshold) { return true; }
 
             // rest
             Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
             while (currentState.mana < manaThreshold || currentState.health < hpThreshold) {
-                await Task.Delay(1000);
+                await Task.Delay(2000);
                 currentState = EQState.GetCurrentEQState();
+                if(!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED)) {
+                    Console.WriteLine("CS:" + currentState.characterState); return false;
+                }
             }
 
             return true;
