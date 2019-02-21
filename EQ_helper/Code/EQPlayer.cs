@@ -14,7 +14,7 @@ namespace EQ_helper
         private static long BURNOUT_TIME_MILLIS = (long)(14.5 * 60 * 1000); // - 30 secs
         private long lastBurnoutCastTime = 0;
 
-        private static long DMG_SHIELD_TIME_MILLIS = (long)(14.5 * 60 * 1000); // - 30 secs
+        private static long DMG_SHIELD_TIME_MILLIS = (long)(2 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
         public enum PlayerState {
@@ -85,7 +85,8 @@ namespace EQ_helper
 
             ListenForTells();
             //ClericLoopTask();
-            PyzjnLoopTask();
+            //PyzjnLoopTask();
+            DmgShieldLoopTask();
             //CoreGameplayLoopTask();
         }
 
@@ -141,11 +142,8 @@ namespace EQ_helper
                                 else
                                 {
                                     Console.WriteLine("You were sent a tell from " + name + " " + "'" + message + "'");
-
-                                    var webhookUrl = new Uri("https://hooks.slack.com/services/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");
-                                    var slackClient = new SlackClient(webhookUrl);
                                     var slackMessage = name + " sent you a tell: " + message;
-                                    slackClient.SendMessageAsync(slackMessage);
+                                    SlackHelper.SendSlackMessageAsync(slackMessage);
                                 }
                             }
 
@@ -168,6 +166,7 @@ namespace EQ_helper
                 {
                 	case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
+                        await EQTask.DeselectTargetTask();
                         await EQTask.RestUntilFullManaTask();
                         currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
                         break;
@@ -179,9 +178,13 @@ namespace EQ_helper
                             PlayerState.FINDING_SUITABLE_TARGET);
                         break;
                     case PlayerState.CASTING_DMG_SHIELD_ON_PET:
-                        updateStatus("Casting Damage Shield on Pet");
-                        await EQTask.DamageShieldBotTask();
-                        await Task.Delay(500);
+                        updateStatus("Casting Damage Shield on target");
+                        if (!CurrentTimeInsideDuration(lastDmgShieldCastTime, DMG_SHIELD_TIME_MILLIS))
+                        {
+                            lastDmgShieldCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            await EQTask.DamageShieldBotTask();
+                        }
+                        await Task.Delay(5000);
                         currentPlayerState = PlayerState.WAITING_FOR_MANA;
                         break;
                 }
@@ -321,10 +324,7 @@ namespace EQ_helper
                             //soundPlayer.Play();
                             if (timesToAlert % 50 == 0)
                             {
-                                var webhookUrl = new Uri("https://hooks.slack.com/services/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");
-                                var slackClient = new SlackClient(webhookUrl);
-                                var message = "PYZJN_FOUND";
-                                slackClient.SendMessageAsync(message);
+                                SlackHelper.SendSlackMessageAsync("Pyzjn Found!");
                             }
                             timesToAlert--;
                             await Task.Delay(2000);
@@ -540,10 +540,7 @@ namespace EQ_helper
                             //soundPlayer.Play();
                             if(timesToAlert % 50 == 0)
                             {
-                                var webhookUrl = new Uri("https://hooks.slack.com/services/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");
-                                var slackClient = new SlackClient(webhookUrl);
-                                var message = "PYZJN_FOUND";
-                                slackClient.SendMessageAsync(message);
+                                SlackHelper.SendSlackMessageAsync("Pyzjn found!");
                             }
                             timesToAlert--;
                             await Task.Delay(2000);

@@ -62,6 +62,7 @@
     <Compile Include="Code\EQTask.cs" />
     <Compile Include="Code\MonsterData.cs" />
     <Compile Include="Code\SlackClient.cs" />
+    <Compile Include="Code\SlackHelper.cs" />
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>

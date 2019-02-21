@@ -52,10 +52,7 @@ namespace EQ_helper
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            //var webhookUrl = new Uri("https://hooks.slack.com/services/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");
-            //var slackClient = new SlackClient(webhookUrl);
-            //var message = "TESTING BEEP BEEP";
-            //slackClient.SendMessageAsync(message);
+            SlackHelper.SendSlackMessageAsync("Test");
 
             //player.KickOffSpamZero();
             //DamageShieldBotTask();
