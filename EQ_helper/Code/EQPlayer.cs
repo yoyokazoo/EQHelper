@@ -228,15 +228,25 @@ namespace EQ_helper
                         await EQTask.NukeTask();
                         await EQTask.EnterCombatTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
-                            PlayerState.HIDE_CORPSES,
-                            PlayerState.HIDE_CORPSES);
+                            PlayerState.ATTEMPT_TO_LOOT,
+                            PlayerState.ATTEMPT_TO_LOOT);
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
                         await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
-                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.CASTING_BURNOUT_ON_PET,
                             PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.CASTING_BURNOUT_ON_PET:
+                        updateStatus("Casting burnout on pet and setting timer");
+                        if (!CurrentTimeInsideDuration(lastBurnoutCastTime, BURNOUT_TIME_MILLIS))
+                        {
+                            lastBurnoutCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            await EQTask.ApplyPetBuffTask();
+                            await EQTask.RestTask();
+                        }
+                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -246,12 +256,12 @@ namespace EQ_helper
                             PlayerState.KILLING_TARGET_ASAP,
                             PlayerState.CHECK_COMBAT_STATUS);
                         break;
-                    /*case PlayerState.ATTEMPT_TO_LOOT:
+                    case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootCoinTask(),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
-                        break;*/
+                        break;
                     case PlayerState.HIDE_CORPSES:
                         updateStatus("Hiding Corpses");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.HideCorpsesTask(),

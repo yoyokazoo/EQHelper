@@ -40,6 +40,7 @@ namespace EQ_helper
         const Keys HEAL_PET_KEY = Keys.Subtract;
         const Keys GATE_KEY = Keys.Oemplus;
 
+        const Keys TARGET_SELF_KEY = Keys.F1;
         const Keys TARGET_NEAREST_MOB_KEY = Keys.F8;
         const Keys RESELECT_PREVIOUS_TARGET_KEY = Keys.F9;
         const Keys TARGET_NEAREST_CORPSE_KEY = Keys.F10;
@@ -211,6 +212,9 @@ namespace EQ_helper
 
         public static async Task<bool> ApplyPetBuffTask()
         {
+            // Target self
+            Keyboard.KeyPress(TARGET_SELF_KEY); await Task.Delay(1000);
+
             // Put Buff On Pet
             Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
             Keyboard.KeyPress(BUFF_PET_KEY); await Task.Delay(1000);
@@ -302,7 +306,7 @@ namespace EQ_helper
             while (findTargetAttempts < 5)
             {
                 // Find Target
-                Keyboard.KeyPress(FIND_NORMAL_MOB_KEY); await Task.Delay(1000);
+                Keyboard.KeyPress(FIND_NORMAL_MOB_KEY); await Task.Delay(1500);
                 EQState currentState = EQState.GetCurrentEQState();
                 if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
                 findTargetAttempts++;
@@ -392,7 +396,8 @@ namespace EQ_helper
             while (currentState.mana < manaThreshold || currentState.health < hpThreshold) {
                 await Task.Delay(2000);
                 currentState = EQState.GetCurrentEQState();
-                if(!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED)) {
+                if(!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED) &&
+                    currentState.targetHealth > 0.02) {
                     Console.WriteLine("CS:" + currentState.characterState); return false;
                 }
             }
