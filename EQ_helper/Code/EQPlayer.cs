@@ -83,9 +83,12 @@ namespace EQ_helper
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
+            //EQScreen.
+
             ListenForTells();
+            DruidLoopTask();
             //ClericLoopTask();
-            PyzjnLoopTask();
+            //PyzjnLoopTask();
             //CoreGameplayLoopTask();
         }
 
@@ -191,6 +194,70 @@ namespace EQ_helper
             return true;
         }
 
+        async Task<bool> DruidLoopTask()
+        {
+            updateStatus("Kicking off druid loop");
+            EQState currentEQState = EQState.GetCurrentEQState();
+            while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
+            {
+                // always update EQState here?
+                switch (currentPlayerState)
+                {
+                    case PlayerState.WAITING_TO_FOCUS:
+                        updateStatus("Focusing on EQ Window");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FocusOnEQWindowTask(),
+                            PlayerState.FOCUSED_ON_EQ_WINDOW,
+                            PlayerState.EXITING_CORE_GAMEPLAY_LOOP);
+                        break;
+                    case PlayerState.FOCUSED_ON_EQ_WINDOW:
+                        updateStatus("Focused on EQ Window");
+                        currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
+                        break;
+                    case PlayerState.CHECK_COMBAT_STATUS:
+                        updateStatus("Focused on EQ Window");
+                        currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.WAITING_FOR_MANA);
+                        break;
+                    case PlayerState.KILLING_TARGET_ASAP:
+                        updateStatus("Killing target ASAP");
+                        await EQTask.NukeTask();
+                        await EQTask.EnterCombatTask();
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
+                            PlayerState.HIDE_CORPSES,
+                            PlayerState.HIDE_CORPSES);
+                        break;
+                    case PlayerState.WAITING_FOR_MANA:
+                        updateStatus("Resting for mana");
+                        await EQTask.RestUntilFullManaTask();
+                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        break;
+                    case PlayerState.FINDING_SUITABLE_TARGET:
+                        updateStatus("Finding Suitable Target");
+                        //bool foundTargetResult = await EQTask.FindNearestTargetTask();
+                        bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
+                        currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    /*case PlayerState.ATTEMPT_TO_LOOT:
+                        updateStatus("Attempting to loot");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootCoinTask(),
+                            PlayerState.HIDE_CORPSES,
+                            PlayerState.HIDE_CORPSES);
+                        break;*/
+                    case PlayerState.HIDE_CORPSES:
+                        updateStatus("Hiding Corpses");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.HideCorpsesTask(),
+                            PlayerState.CHECK_COMBAT_STATUS,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                }
+            }
+
+            updateStatus("Exited Core Gameplay ");
+            return true;
+        }
 
         async Task<bool> ClericLoopTask()
         {

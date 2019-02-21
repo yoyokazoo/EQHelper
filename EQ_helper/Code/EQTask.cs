@@ -382,12 +382,13 @@ namespace EQ_helper
         public static async Task<bool> RestUntilFullManaTask()
         {
             float manaThreshold = 0.98f;
+            float hpThreshold = 0.98f;
             EQState currentState = EQState.GetCurrentEQState();
-            if (currentState.mana >= manaThreshold) { return true; }
+            if (currentState.mana >= manaThreshold || currentState.health >= hpThreshold) { return true; }
 
             // rest
             Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
-            while (currentState.mana < manaThreshold) {
+            while (currentState.mana < manaThreshold || currentState.health < hpThreshold) {
                 await Task.Delay(1000);
                 currentState = EQState.GetCurrentEQState();
             }
