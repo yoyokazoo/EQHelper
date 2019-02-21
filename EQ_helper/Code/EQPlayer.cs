@@ -161,17 +161,29 @@ namespace EQ_helper
         {
             updateStatus("Kicking off core gameplay loop");
             EQState currentEQState = EQState.GetCurrentEQState();
-            currentPlayerState = PlayerState.WAITING_FOR_MANA;
+            currentPlayerState = PlayerState.WAITING_TO_FOCUS;
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
                 // always update EQState here?
                 switch (currentPlayerState)
                 {
-                	case PlayerState.WAITING_FOR_MANA:
+                    case PlayerState.WAITING_TO_FOCUS:
+                        updateStatus("Focusing on EQ Window");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FocusOnEQWindowTask(),
+                            PlayerState.FOCUSED_ON_EQ_WINDOW,
+                            PlayerState.EXITING_CORE_GAMEPLAY_LOOP);
+                        break;
+                    case PlayerState.FOCUSED_ON_EQ_WINDOW:
+                        updateStatus("Focused on EQ Window");
+                        await EQTask.HideCorpsesTask();
+                        currentPlayerState = PlayerState.WAITING_FOR_MANA;
+                        break;
+                    case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
-                        await EQTask.DeselectTargetTask();
                         await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
+                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -188,6 +200,7 @@ namespace EQ_helper
                             await EQTask.DamageShieldBotTask();
                         }
                         await Task.Delay(5000);
+                        await EQTask.DeselectTargetTask();
                         currentPlayerState = PlayerState.WAITING_FOR_MANA;
                         break;
                 }
