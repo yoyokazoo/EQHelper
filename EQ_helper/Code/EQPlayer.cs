@@ -51,6 +51,8 @@ namespace EQ_helper
 
             LEVEL_UP_SKILL,
 
+            CHECKING_FOR_PYZJN,
+
             PYZJN_FOUND,
             NO_PYZJN_FOUND,
 
@@ -88,13 +90,13 @@ namespace EQ_helper
             updateStatus("Inside main loop");
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
-            EQScreen.SetComputer(false);
+            EQScreen.SetComputer(true);
 
             ListenForTells();
-            DruidLoopTask();
+            //DruidLoopTask();
             //ClericLoopTask();
             //PyzjnLoopTask();
-            //DmgShieldLoopTask();
+            DmgShieldLoopTask();
             //CoreGameplayLoopTask();
         }
 
@@ -195,7 +197,23 @@ namespace EQ_helper
                         updateStatus("Resting for mana");
                         await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
-                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.CHECKING_FOR_PYZJN,
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                        break;
+                    case PlayerState.CHECKING_FOR_PYZJN:
+                        updateStatus("Checking for Pyzjn");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FindSpecificTarget(),
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.FINDING_SUITABLE_TARGET);
+                        break;
+                    case PlayerState.KILLING_TARGET_ASAP:
+                        updateStatus("Killing target ASAP");
+                        SlackHelper.SendSlackMessageAsync("Killing Lockjaw, check for loot");
+                        await EQTask.PetAttackTask();
+                        await EQTask.NukeTask();
+                        await EQTask.EnterCombatTask();
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
+                            PlayerState.CHECK_FARMING_TIME_LIMIT,
                             PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
@@ -203,7 +221,7 @@ namespace EQ_helper
 						bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
                             PlayerState.CASTING_DMG_SHIELD_ON_PET,
-                            PlayerState.FINDING_SUITABLE_TARGET);
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                     case PlayerState.CASTING_DMG_SHIELD_ON_PET:
                         updateStatus("Casting Damage Shield on target");
