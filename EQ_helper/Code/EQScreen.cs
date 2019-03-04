@@ -42,6 +42,15 @@ namespace EQ_helper
         public static int targetConX;
         public static int targetConY;
 
+        public static int nameCoordX1;
+        public static int nameCoordY1;
+        public static int nameCoordX2;
+        public static int nameCoordY2;
+        public static int nameCoordX3;
+        public static int nameCoordY3;
+        public static int nameCoordX4;
+        public static int nameCoordY4;
+
         // for reference
         private static Color EMPTY_BAR_COLOR = Color.FromArgb(57, 60, 57);
         private static Color WHITE_TEXT_COLOR = Color.FromArgb(255, 255, 255);
@@ -53,6 +62,9 @@ namespace EQ_helper
         public static Color STANDING_CHARACTER_COLOR = Color.FromArgb(82, 117, 148);
         public static Color COMBAT_CHARACTER_COLOR = Color.FromArgb(198, 195, 198);
         public static Color POISONED_CHARACTER_COLOR = Color.FromArgb(148, 215, 0);
+
+        public static Color NAME_WHITE = Color.FromArgb(240, 240, 240);
+        public static Color NAME_GREY = Color.FromArgb(210, 210, 211);
 
         private static IntPtr eqWindowHandle = IntPtr.Zero;
 
@@ -71,9 +83,9 @@ namespace EQ_helper
             }
             else
             {
-                HP_BAR_TOPLEFT_X = 1538;
-                HP_BAR_TOPRIGHT_X = 1913;
-                HP_BAR_TOPLEFT_Y = 1163;
+                HP_BAR_TOPLEFT_X = 1572;
+                HP_BAR_TOPRIGHT_X = 1945; // + 373?
+                HP_BAR_TOPLEFT_Y = 1012;
 
                 TARGET_BAR_TOPLEFT_X = 1541;
                 TARGET_BAR_TOPRIGHT_X = 1914;
@@ -101,7 +113,19 @@ namespace EQ_helper
 
             targetConX = TARGET_BAR_TOPLEFT_X - 5;
             targetConY = TARGET_BAR_TOPLEFT_Y;
-    }
+
+            // Bottom of Y
+            nameCoordX1 = HP_BAR_TOPLEFT_X;
+            nameCoordY1 = HP_BAR_TOPLEFT_Y - 28;
+
+            // Top Left of Y, T
+            nameCoordX2 = HP_BAR_TOPLEFT_X - 3;
+            nameCoordY2 = HP_BAR_TOPLEFT_Y - 35;
+
+            // Bottom of T
+            nameCoordX3 = HP_BAR_TOPLEFT_X - 1;
+            nameCoordY3 = HP_BAR_TOPLEFT_Y - 28;
+        }
 
         public static Bitmap GetEQBitmap()
         {
@@ -159,6 +183,22 @@ namespace EQ_helper
             float barPercentFilled = barFilled / barTotal;
 
             return barPercentFilled;
+        }
+
+        public static string GetNameFromBitmap(Bitmap bm)
+        {
+            Console.WriteLine(String.Format("Name coord 1 ({0},{1}) is {2}", nameCoordX1, nameCoordY1, bm.GetPixel(nameCoordX1, nameCoordY1)));
+            Console.WriteLine(String.Format("Name coord 2 ({0},{1}) is {2}", nameCoordX2, nameCoordY2, bm.GetPixel(nameCoordX2, nameCoordY2)));
+            Console.WriteLine(String.Format("Name coord 3 ({0},{1}) is {2}", nameCoordX3, nameCoordY3, bm.GetPixel(nameCoordX3, nameCoordY3)));
+            if (bm.GetPixel(nameCoordX1, nameCoordY1) == NAME_WHITE && bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE)
+            {
+                return "Yoyokazoo";
+            }
+            else if(bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE && bm.GetPixel(nameCoordX3, nameCoordY3) == NAME_GREY)
+            {
+                return "Trakklo";
+            }
+            return "UNKNOWN";
         }
     }
 }

@@ -91,7 +91,8 @@ namespace EQ_helper
             EQScreen.SetComputer(false);
 
             ListenForTells();
-            DruidLoopTask();
+            RogueLoopTask();
+            //DruidLoopTask();
             //ClericLoopTask();
             //PyzjnLoopTask();
             //DmgShieldLoopTask();
@@ -224,6 +225,97 @@ namespace EQ_helper
             return true;
         }
 
+        async Task<bool> RogueLoopTask()
+        {
+            int creaturesPulled = 0;
+            int throwingDaggerStack = 0;
+
+            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
+            updateStatus("Kicking off rogue loop");
+            EQState currentEQState = EQState.GetCurrentEQState();
+            while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
+            {
+                // always update EQState here?
+                switch (currentPlayerState)
+                {
+                    case PlayerState.WAITING_TO_FOCUS:
+                        updateStatus("Focusing on EQ Window");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.FocusOnEQWindowTask(),
+                            PlayerState.FOCUSED_ON_EQ_WINDOW,
+                            PlayerState.EXITING_CORE_GAMEPLAY_LOOP);
+                        break;
+                    case PlayerState.FOCUSED_ON_EQ_WINDOW:
+                        updateStatus("Focused on EQ Window");
+                        await EQTask.HideCorpsesTask();
+                        currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
+                        break;
+                    case PlayerState.CHECK_FARMING_TIME_LIMIT:
+                        updateStatus("Checking farming time limit");
+                        currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
+                        if (!CurrentTimeInsideDuration(lastFarmingLimitTime, FARMING_LIMIT_TIME_MILLIS))
+                        {
+                            currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
+                        }
+
+                        creaturesPulled++;
+                        if(creaturesPulled % 20 == 0)
+                        {
+                            SlackHelper.SendSlackMessageAsync("Out of daggers, go refill");
+                            currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
+                        }
+
+                        break;
+                    case PlayerState.CHECK_COMBAT_STATUS:
+                        updateStatus("Checking combat Status");
+                        currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.WAITING_FOR_MANA);
+                        break;
+                    case PlayerState.KILLING_TARGET_ASAP:
+                        updateStatus("Killing target ASAP");
+                        await EQTask.PullWithThrowingWeaponTask();
+                        await EQTask.EnterCombatTask();
+                        await EQTask.EnterCombatTask();
+                        await EQTask.EnterCombatTask();
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LevelSkillUntilDeadTask(),
+                            PlayerState.ATTEMPT_TO_LOOT,
+                            PlayerState.ATTEMPT_TO_LOOT);
+                        break;
+                    case PlayerState.WAITING_FOR_MANA:
+                        updateStatus("Resting until fuly healed");
+                        await EQTask.RestUntilFullyHealedTask();
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullyHealedTask(),
+                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                        break;
+                    case PlayerState.FINDING_SUITABLE_TARGET:
+                        updateStatus("Finding Suitable Target");
+                        bool foundTargetResult = await EQTask.FindNearestTargetTask(false);
+                        currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
+                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.CHECK_COMBAT_STATUS);
+                        break;
+                    case PlayerState.ATTEMPT_TO_LOOT:
+                        updateStatus("Attempting to loot");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
+                            PlayerState.HIDE_CORPSES,
+                            PlayerState.HIDE_CORPSES);
+                        break;
+                    case PlayerState.HIDE_CORPSES:
+                        updateStatus("Hiding Corpses");
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.HideCorpsesTask(),
+                            PlayerState.CHECK_FARMING_TIME_LIMIT,
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                        break;
+                }
+            }
+
+            updateStatus("Exited Core Gameplay, attempting to camp");
+            await EQTask.CampTask();
+            return true;
+        }
+
         async Task<bool> DruidLoopTask()
         {
             updateStatus("Kicking off druid loop");
@@ -260,7 +352,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.KILLING_TARGET_ASAP:
                         updateStatus("Killing target ASAP");
-                        await EQTask.NukeTask();
+                        await EQTask.PullWithSpellTask();
                         await EQTask.EnterCombatTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
                             PlayerState.ATTEMPT_TO_LOOT,
@@ -285,7 +377,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
-                        //bool foundTargetResult = await EQTask.FindNearestTargetTask();
+                        //bool foundTargetResult = await EQTask.FindNearestTargetTask(true);
                         bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
                             PlayerState.KILLING_TARGET_ASAP,
@@ -293,7 +385,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootCoinTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
@@ -359,7 +451,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootAllTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
@@ -466,7 +558,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootAllTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
@@ -684,7 +776,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootCoinTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;

@@ -59,7 +59,7 @@ namespace EQ_helper
             await Task.Delay(500);
             return true;
         }
-
+        
         // TODO: revamp this
         public static bool CurrentTimeInsideDuration(long startTime, long duration)
         {
@@ -131,29 +131,23 @@ namespace EQ_helper
             await PetAttackTask();
             await NukeUntilDeadTask();
 
-            await LootCoinTask();
+            await LootTask();
 
             return true;
         }
 
-        public static async Task<bool> LootCoinTask()
-        {
-            Keyboard.KeyPress(TARGET_NEAREST_CORPSE_KEY); await Task.Delay(500);
-            Keyboard.KeyPress(LOOT_KEY); await Task.Delay(500);
-            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(500);
-
-            return true;
-        }
-
-        public static async Task<bool> LootAllTask()
+        public static async Task<bool> LootTask(bool lootAll = false)
         {
             Keyboard.KeyPress(TARGET_NEAREST_CORPSE_KEY); await Task.Delay(500);
             Keyboard.KeyPress(LOOT_KEY); await Task.Delay(1500);
 
-            Mouse.Move(703, 634);
-            Mouse.ButtonDown(Mouse.MouseKeys.Left); await Task.Delay(50);
-            Mouse.ButtonUp(Mouse.MouseKeys.Left); await Task.Delay(50);
-            await Task.Delay(2500);
+            if (lootAll)
+            {
+                Mouse.Move(703, 634);
+                Mouse.ButtonDown(Mouse.MouseKeys.Left); await Task.Delay(50);
+                Mouse.ButtonUp(Mouse.MouseKeys.Left); await Task.Delay(50);
+                await Task.Delay(2500);
+            }
 
             Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(500);
 
@@ -174,9 +168,23 @@ namespace EQ_helper
             return true;
         }
 
+        public static async Task<bool> LevelSkillUntilDeadTask()
+        {
+            EQState currentState = EQState.GetCurrentEQState();
+            int levelSkillAttempts = 1;
+            while (currentState.targetHealth > 0.00 && levelSkillAttempts < 50)
+            {
+                levelSkillAttempts++;
+                await LevelUpSkillTask();
+                currentState = EQState.GetCurrentEQState();
+            }
+
+            return true;
+        }
+
         public static async Task<bool> EnterCombatTask()
         {
-            Keyboard.KeyPress(ENTER_COMBAT_KEY); await Task.Delay(100);
+            Keyboard.KeyPress(ENTER_COMBAT_KEY); await Task.Delay(200);
             return true;
         }
 
@@ -259,7 +267,7 @@ namespace EQ_helper
             return true;
         }
 
-        public static async Task<bool> FindNearestTargetTask()
+        public static async Task<bool> FindNearestTargetTask(bool cycleCamera = false)
         {
              Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
             int findTargetAttempts = 1;
@@ -275,7 +283,10 @@ namespace EQ_helper
                 if(findTargetAttempts % 10 == 0)
                 {
                     // change camera view
-                    //Keyboard.KeyPress(CHANGE_CAMERA_ANGLE_KEY); await Task.Delay(500);
+                    if(cycleCamera)
+                    {
+                        Keyboard.KeyPress(CHANGE_CAMERA_ANGLE_KEY); await Task.Delay(500);
+                    }
                 }
             }
 
@@ -405,6 +416,29 @@ namespace EQ_helper
             return true;
         }
 
+        public static async Task<bool> RestUntilFullyHealedTask()
+        {
+            float hpThreshold = 0.98f;
+
+            EQState currentState = EQState.GetCurrentEQState();
+            if (currentState.health >= hpThreshold) { return true; }
+
+            // rest
+            Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
+            while (currentState.health < hpThreshold)
+            {
+                await Task.Delay(2000);
+                currentState = EQState.GetCurrentEQState();
+                if (!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED) &&
+                    currentState.targetHealth > 0.02)
+                {
+                    Console.WriteLine("CS:" + currentState.characterState); return false;
+                }
+            }
+
+            return true;
+        }
+
         public static async Task<bool> RestTask()
         {
             // rest
@@ -437,7 +471,7 @@ namespace EQ_helper
 
         public static async Task<bool> LevelUpSkillTask()
         {
-            Keyboard.KeyPress(GATE_KEY); await Task.Delay(3500);
+            Keyboard.KeyPress(FIND_SPECIAL_MOB_KEY); await Task.Delay(3500);
 
             return true;
         }
@@ -453,9 +487,31 @@ namespace EQ_helper
 
         public static async Task<bool> CampTask()
         {
-            Keyboard.KeyPress(Keys.Oemplus); await Task.Delay(1000);
+            Keyboard.KeyPress(GATE_KEY); await Task.Delay(1000);
 
 
+            return true;
+        }
+
+        public static async Task<bool> PullWithSpellTask()
+        {
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+
+            await Task.Delay(5000);
+
+
+            return true;
+        }
+
+        public static async Task<bool> PullWithThrowingWeaponTask()
+        {
+            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+
+            await Task.Delay(2000);
             return true;
         }
     }

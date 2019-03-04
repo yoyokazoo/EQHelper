@@ -17,6 +17,8 @@ namespace EQ_helper
         public float targetHealth;
         public MonsterInfo targetInfo;
 
+        public static EQState mostRecentState = null;
+
         public enum CharacterState
         {
             SITTING,
@@ -29,7 +31,12 @@ namespace EQ_helper
 
         public double minutesSinceMidnight;
 
-        public static EQState GetCurrentEQState()
+        public static EQState GetMostRecentEQState()
+        {
+            return mostRecentState;
+        }
+
+            public static EQState GetCurrentEQState()
         {
             EQState currentEQState = new EQState();
 
@@ -42,6 +49,8 @@ namespace EQ_helper
             currentEQState.characterState = GetCharacterState(bm);
             currentEQState.minutesSinceMidnight = GetMinutesSinceMidnight();
             bm.Dispose();
+
+            mostRecentState = currentEQState;
 
             return currentEQState;
         }
