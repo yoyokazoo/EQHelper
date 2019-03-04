@@ -96,8 +96,8 @@ namespace EQ_helper
             //DruidLoopTask();
             //ClericLoopTask();
             //PyzjnLoopTask();
-            DmgShieldLoopTask();
-            //CoreGameplayLoopTask();
+            //DmgShieldLoopTask();
+            CoreGameplayLoopTask();
         }
 
         async Task<PlayerState> ChangeStateBasedOnTaskResult(Task<bool> task, PlayerState successState, PlayerState failureState)
@@ -167,6 +167,9 @@ namespace EQ_helper
         async Task<bool> DmgShieldLoopTask()
         {
             updateStatus("Kicking off core gameplay loop");
+
+            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
             EQState currentEQState = EQState.GetCurrentEQState();
             currentPlayerState = PlayerState.WAITING_TO_FOCUS;
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
@@ -187,11 +190,12 @@ namespace EQ_helper
                         break;
                     case PlayerState.CHECK_FARMING_TIME_LIMIT:
                         updateStatus("Checking farming time limit");
+                        currentPlayerState = PlayerState.WAITING_FOR_MANA;
+
                         if (!CurrentTimeInsideDuration(lastFarmingLimitTime, FARMING_LIMIT_TIME_MILLIS))
                         {
-                            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
                         }
-                        currentPlayerState = PlayerState.WAITING_FOR_MANA;
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
@@ -544,7 +548,7 @@ namespace EQ_helper
                         await EQTask.DeselectTargetTask();
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.petHealth > 0.05,
                             PlayerState.CASTING_BURNOUT_ON_PET,
-                            PlayerState.GTFO);
+                            PlayerState.CASTING_BURNOUT_ON_PET);
                         break;
 
                         currentPlayerState = PlayerState.CASTING_BURNOUT_ON_PET;
@@ -602,7 +606,7 @@ namespace EQ_helper
                         //bool foundTargetResult = await EQTask.FindNearestTargetTask();
                         bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
-                            PlayerState.CASTING_DMG_SHIELD_ON_PET,
+                            PlayerState.PULL_WITH_NUKE,
                             PlayerState.CHECK_COMBAT_STATUS);
                         // set timer
                         /*
@@ -635,7 +639,7 @@ namespace EQ_helper
                         await EQTask.NukeTask(); await Task.Delay(500);
                         await EQTask.EnterCombatTask();
                         await EQTask.NukeTask(); await Task.Delay(500);
-                        currentPlayerState = PlayerState.PULL_WITH_PET_OUT;
+                        currentPlayerState = PlayerState.KILLING_TARGET_ASAP;
                         break;
                     case PlayerState.PULL_WITH_PET_OUT:
                         updateStatus("PULLING OUT WITH PET");
@@ -702,7 +706,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootCoinTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootAllTask(),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
