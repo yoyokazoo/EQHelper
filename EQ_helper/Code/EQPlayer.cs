@@ -17,7 +17,7 @@ namespace EQ_helper
         private static long DMG_SHIELD_TIME_MILLIS = (long)(2 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
-        private static long FARMING_LIMIT_TIME_MILLIS = (long)(2 * 60 * 60 * 1000); // - 30 secs
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(1 * 60 * 60 * 1000); // - 30 secs
         private long lastFarmingLimitTime = 0;
 
         public enum PlayerState {
@@ -599,6 +599,8 @@ namespace EQ_helper
 
         async Task<bool> CoreGameplayLoopTask()
         {
+            lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+
             updateStatus("Kicking off core gameplay loop");
             EQState currentEQState = EQState.GetCurrentEQState();
 
@@ -623,17 +625,26 @@ namespace EQ_helper
                         updateStatus("Focused on EQ Window");
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
                             PlayerState.KILLING_TARGET_ASAP,
-                            PlayerState.CHECK_PREPAREDNESS);
+                            PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                     case PlayerState.KILLING_TARGET_ASAP:
                         updateStatus("Killing target ASAP");
-                        await EQTask.PetAttackTask();
+                        //await EQTask.PetAttackTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
                             PlayerState.ATTEMPT_TO_LOOT,
                             PlayerState.ATTEMPT_TO_LOOT);
                         break;
                     // TODO: // SUMMONING_PET,
                     // EQUIPPING_PET,
+                    case PlayerState.CHECK_FARMING_TIME_LIMIT:
+                        updateStatus("Checking farming time limit");
+                        currentPlayerState = PlayerState.CHECK_PREPAREDNESS;
+
+                        if (!CurrentTimeInsideDuration(lastFarmingLimitTime, FARMING_LIMIT_TIME_MILLIS))
+                        {
+                            currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
+                        }
+                        break;
                     case PlayerState.CHECK_PREPAREDNESS:
                         updateStatus("Checking preparedness? nothing atm");
 
@@ -678,7 +689,7 @@ namespace EQ_helper
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
                         await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.PREPARED_FOR_BATTLE_NIGHT;
+                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
                         // set timer
                         /*
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.ApplyPetBuffTask(),
@@ -695,10 +706,10 @@ namespace EQ_helper
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
-                        //bool foundTargetResult = await EQTask.FindNearestTargetTask();
-                        bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
+                        bool foundTargetResult = await EQTask.FindNearestTargetTask(true, MonsterCon.GREEN);
+                        //bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
-                            PlayerState.PULL_WITH_NUKE,
+                            PlayerState.CASTING_DMG_SHIELD_ON_PET,
                             PlayerState.CHECK_COMBAT_STATUS);
                         // set timer
                         /*
@@ -713,10 +724,10 @@ namespace EQ_helper
                         if(!CurrentTimeInsideDuration(lastDmgShieldCastTime, DMG_SHIELD_TIME_MILLIS))
                         {
                             lastDmgShieldCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
-                            await EQTask.DamageShieldBotTask();
+                            await EQTask.ApplyDamageShieldTask(true);
                         }
                         await Task.Delay(500);
-                        await EQTask.FindAnyTargetWithMacroTask();
+                        await EQTask.FindNearestTargetTask(true);
                         currentPlayerState = PlayerState.PULL_WITH_NUKE;
                         // set timer
                         /*
@@ -798,7 +809,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
@@ -812,6 +823,7 @@ namespace EQ_helper
             }
 
             updateStatus("Exited Core Gameplay ");
+            await EQTask.CampTask();
             return true;
         }
 

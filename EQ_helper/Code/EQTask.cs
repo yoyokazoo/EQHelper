@@ -239,8 +239,14 @@ namespace EQ_helper
             return true;
         }
 
-        public static async Task<bool> ApplyDamageShieldTask()
+        public static async Task<bool> ApplyDamageShieldTask(bool targetSelf = false)
         {
+            // Target self
+            if (targetSelf) {
+                Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(100);
+                Keyboard.KeyPress(TARGET_SELF_KEY); await Task.Delay(1000);
+            }
+
             // Put Shield On Pet
             Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(1000);
             Keyboard.KeyPress(DAMAGE_SHIELD_KEY); await Task.Delay(1000);
@@ -267,9 +273,9 @@ namespace EQ_helper
             return true;
         }
 
-        public static async Task<bool> FindNearestTargetTask(bool cycleCamera = false)
+        public static async Task<bool> FindNearestTargetTask(bool cycleCamera = false, MonsterCon minCon = MonsterCon.GREY, MonsterCon maxCon = MonsterCon.RED)
         {
-             Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
             int findTargetAttempts = 1;
             int maxFindAttempts = 100;
             while (findTargetAttempts <= 100)
@@ -277,7 +283,11 @@ namespace EQ_helper
                 // Find Target
                 Keyboard.KeyPress(TARGET_NEAREST_MOB_KEY); await Task.Delay(500);
                 EQState currentState = EQState.GetCurrentEQState();
-                if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
+                bool conInCorrectRange = ((int)currentState.targetInfo.con >= (int)minCon && (int)currentState.targetInfo.con <= (int)maxCon);
+                Console.WriteLine(String.Format("min {0} max {1} target {2} in range? {3}", (int)minCon, (int)maxCon, (int)currentState.targetInfo.con, conInCorrectRange));
+                if ((int)currentState.targetInfo.con >= (int)minCon && (int)currentState.targetInfo.con <= (int)maxCon) { return true; }
+                if (currentState.targetInfo.con != MonsterCon.NONE) { Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200); }
+                //if (currentState.targetInfo.con != MonsterCon.NONE) { return true; }
                 findTargetAttempts++;
 
                 if(findTargetAttempts % 10 == 0)

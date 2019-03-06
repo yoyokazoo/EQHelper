@@ -9,14 +9,14 @@ namespace EQ_helper
 {
     public enum MonsterCon
     {
-        NONE,
-        GREY,
-        LIGHT_BLUE,
-        GREEN,
-        DARK_BLUE,
-        WHITE,
-        YELLOW,
-        RED
+        NONE = 0,
+        GREY = 1,
+        GREEN = 2,
+        LIGHT_BLUE = 3,
+        DARK_BLUE = 4,
+        WHITE = 5,
+        YELLOW = 6,
+        RED = 7
     }
 
     public struct MonsterInfo
