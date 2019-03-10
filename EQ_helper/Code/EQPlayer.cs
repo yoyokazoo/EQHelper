@@ -14,10 +14,13 @@ namespace EQ_helper
         private static long BURNOUT_TIME_MILLIS = (long)(14.5 * 60 * 1000); // - 30 secs
         private long lastBurnoutCastTime = 0;
 
-        private static long DMG_SHIELD_TIME_MILLIS = (long)(2 * 60 * 1000); // - 30 secs
+        private static long ARCH_SHIELDING_TIME_MILLIS = (long)(1 * 60 * 60 * 1000); // - 30 secs
+        private long lastArchShieldingCastTime = 0;
+
+        private static long DMG_SHIELD_TIME_MILLIS = (long)(4 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
-        private static long FARMING_LIMIT_TIME_MILLIS = (long)(1 * 60 * 60 * 1000); // - 30 secs
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(1.5 * 60 * 60 * 1000); // - 30 secs
         private long lastFarmingLimitTime = 0;
 
         public enum PlayerState {
@@ -33,6 +36,7 @@ namespace EQ_helper
             GTFO,
 
             CASTING_BURNOUT_ON_PET,
+            CASTING_ARCH_SHIELDING_ON_SELF,
 
             FINDING_SUITABLE_TARGET,
 
@@ -684,6 +688,15 @@ namespace EQ_helper
                             lastBurnoutCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                             await EQTask.ApplyPetBuffTask();
                         }
+                        currentPlayerState = PlayerState.CASTING_ARCH_SHIELDING_ON_SELF;
+                        break;
+                    case PlayerState.CASTING_ARCH_SHIELDING_ON_SELF:
+                        updateStatus("Casting arch shielding on self and setting timer");
+                        if (!CurrentTimeInsideDuration(lastArchShieldingCastTime, ARCH_SHIELDING_TIME_MILLIS))
+                        {
+                            lastArchShieldingCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            await EQTask.ApplySelfBuffTask();
+                        }
                         currentPlayerState = PlayerState.WAITING_FOR_MANA;
                         break;
                     case PlayerState.WAITING_FOR_MANA:
@@ -706,7 +719,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
-                        bool foundTargetResult = await EQTask.FindNearestTargetTask(true, MonsterCon.GREEN);
+                        bool foundTargetResult = await EQTask.FindNearestTargetTask(false, MonsterCon.GREY);
                         //bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
                             PlayerState.CASTING_DMG_SHIELD_ON_PET,

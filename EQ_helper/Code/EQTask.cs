@@ -37,7 +37,7 @@ namespace EQ_helper
         const Keys BUFF_PET_KEY = Keys.D8;
         const Keys HIDE_CORPSES_KEY = Keys.D9;
         const Keys FIND_SPECIAL_MOB_KEY = Keys.D0;
-        const Keys HEAL_PET_KEY = Keys.Subtract;
+        const Keys HEAL_PET_KEY = Keys.OemMinus;
         const Keys GATE_KEY = Keys.Oemplus;
 
         const Keys TARGET_SELF_KEY = Keys.F1;
@@ -232,6 +232,30 @@ namespace EQ_helper
 
             // Wait for Buff to Finish
             await Task.Delay(8000);
+
+            // deselect pet
+            Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
+
+            return true;
+        }
+
+        public static async Task<bool> ApplySelfBuffTask()
+        {
+            // Target self
+            Keyboard.KeyPress(TARGET_SELF_KEY); await Task.Delay(1000);
+
+            // Put Buff On Self
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
+
+            // Wait for Buff to Finish
+            await Task.Delay(11000);
 
             // deselect pet
             Keyboard.KeyPress(DESELECT_TARGETS_KEY); await Task.Delay(200);
