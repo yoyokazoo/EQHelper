@@ -56,7 +56,7 @@ namespace EQ_helper
 
             SetForegroundWindow(h);
 
-            await Task.Delay(500);
+            await Task.Delay(750);
             return true;
         }
         
@@ -215,7 +215,8 @@ namespace EQ_helper
             Keyboard.KeyPress(NUKE_KEY); await Task.Delay(1000);
             Keyboard.KeyPress(NUKE_KEY); await Task.Delay(1000);
 
-            return true;
+            EQState currentState = EQState.GetCurrentEQState();
+            return (currentState.targetHealth <= 0.00);
         }
 
         public static async Task<bool> ApplyPetBuffTask()
@@ -413,17 +414,17 @@ namespace EQ_helper
             if (currentState.mana >= manaThreshold && currentState.health >= hpThreshold) { return true; }
 
             // rest
-            Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
-            while (currentState.mana < manaThreshold || currentState.health < hpThreshold) {
-                await Task.Delay(2000);
-                currentState = EQState.GetCurrentEQState();
-                if(!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED) &&
-                    currentState.targetHealth > 0.02) {
-                    Console.WriteLine("CS:" + currentState.characterState); return false;
-                }
+            if(currentState.characterState != EQState.CharacterState.SITTING)
+            {
+                Keyboard.KeyPress(REST_KEY); await Task.Delay(1000);
+            }
+            
+            if (!(currentState.characterState == EQState.CharacterState.SITTING || currentState.characterState == EQState.CharacterState.POISONED) && currentState.targetHealth > 0.02)
+            {
+                Console.WriteLine("CS:" + currentState.characterState); return false;
             }
 
-            return true;
+            return false;
         }
 
         public static async Task<bool> RestUntilFullyHealedTask()

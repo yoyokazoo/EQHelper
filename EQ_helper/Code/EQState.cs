@@ -36,7 +36,7 @@ namespace EQ_helper
             return mostRecentState;
         }
 
-            public static EQState GetCurrentEQState()
+        public static EQState GetCurrentEQState()
         {
             EQState currentEQState = new EQState();
 
