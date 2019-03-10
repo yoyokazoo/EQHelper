@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
 
 namespace EQ_helper
 {
@@ -66,13 +67,54 @@ namespace EQ_helper
         public static Color NAME_WHITE = Color.FromArgb(240, 240, 240);
         public static Color NAME_GREY = Color.FromArgb(210, 210, 211);
 
-        private static IntPtr eqWindowHandle = IntPtr.Zero;
+        public static String currentCharacterName = null;
 
-        public static void SetComputer(bool laptop)
+        private static String[] characterNames = null;
+        private static int characterIndex = -1;
+
+        private static Dictionary<String, IntPtr> eqWindowHandles = new Dictionary<String, IntPtr>();
+
+        public static void Initialize()
         {
-            // TODO: clean this up, pass in a struct
-            if(laptop)
+            SetComputer();
+
+            // find window handles
+            Process[] ps = Process.GetProcessesByName("eqgame");
+            int processNum = 0;
+            characterNames = new String[ps.Length];
+            foreach (Process p in ps)
             {
+                Bitmap userBm = ScreenCapture.CaptureWindowBM(p.MainWindowHandle);
+                string name = EQScreen.SetNameFromBitmap(userBm, p.MainWindowHandle);
+                Console.WriteLine("Process " + p.MainWindowTitle + " name = " + name);
+                ScreenCapture.CaptureWindowToFile(p.MainWindowHandle, "Test" + processNum + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+                characterNames[processNum] = name;
+                processNum++;
+            }
+        }
+
+        public static List<String> GetAllPlayerNames()
+        {
+            return eqWindowHandles.Keys.ToList();
+        }
+
+        public static void SetNextCharacter()
+        {
+            characterIndex++;
+            if(characterIndex >= characterNames.Length) { characterIndex = 0; }
+
+            currentCharacterName = characterNames[characterIndex];
+            Console.WriteLine("Set Current Character to " + currentCharacterName);
+        }
+
+        public static void SetComputer()
+        {
+            Console.WriteLine(Screen.PrimaryScreen.WorkingArea.Width);
+            bool laptop = !(Screen.PrimaryScreen.WorkingArea.Width == 2560);
+            // TODO: clean this up, pass in a struct
+            if (laptop)
+            {
+                Console.WriteLine("Setting EQScreen to Laptop coordinates");
                 HP_BAR_TOPLEFT_X = 1160;
                 HP_BAR_TOPRIGHT_X = 1668;
                 HP_BAR_TOPLEFT_Y = 926;
@@ -83,9 +125,10 @@ namespace EQ_helper
             }
             else
             {
-                HP_BAR_TOPLEFT_X = 1572;
-                HP_BAR_TOPRIGHT_X = 1945; // + 373?
-                HP_BAR_TOPLEFT_Y = 1012;
+                Console.WriteLine("Setting EQScreen to Desktop coordinates");
+                HP_BAR_TOPLEFT_X = 1538;
+                HP_BAR_TOPRIGHT_X = 1913;
+                HP_BAR_TOPLEFT_Y = 1163;
 
                 TARGET_BAR_TOPLEFT_X = 1541;
                 TARGET_BAR_TOPRIGHT_X = 1914;
@@ -134,12 +177,9 @@ namespace EQ_helper
 
         public static IntPtr GetEQWindowHandle()
         {
-            if(eqWindowHandle != IntPtr.Zero) { return eqWindowHandle; }
+            if(currentCharacterName != null) { return eqWindowHandles[currentCharacterName]; }
 
-            Process p = Process.GetProcessesByName("eqgame").FirstOrDefault();
-            eqWindowHandle = p.MainWindowHandle;
-
-            return eqWindowHandle;
+            return Process.GetProcessesByName("eqgame").FirstOrDefault().MainWindowHandle;
         }
 
         // checks if the bar is some shade of grey
@@ -185,20 +225,27 @@ namespace EQ_helper
             return barPercentFilled;
         }
 
-        public static string GetNameFromBitmap(Bitmap bm)
+        public static string SetNameFromBitmap(Bitmap bm, IntPtr windowHandle)
         {
+            String name = "Unknown";
             Console.WriteLine(String.Format("Name coord 1 ({0},{1}) is {2}", nameCoordX1, nameCoordY1, bm.GetPixel(nameCoordX1, nameCoordY1)));
             Console.WriteLine(String.Format("Name coord 2 ({0},{1}) is {2}", nameCoordX2, nameCoordY2, bm.GetPixel(nameCoordX2, nameCoordY2)));
             Console.WriteLine(String.Format("Name coord 3 ({0},{1}) is {2}", nameCoordX3, nameCoordY3, bm.GetPixel(nameCoordX3, nameCoordY3)));
             if (bm.GetPixel(nameCoordX1, nameCoordY1) == NAME_WHITE && bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE)
             {
-                return "Yoyokazoo";
+                name = "Yoyokazoo";
             }
             else if(bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE && bm.GetPixel(nameCoordX3, nameCoordY3) == NAME_GREY)
             {
-                return "Trakklo";
+                name = "Trakklo";
             }
-            return "UNKNOWN";
+            else if (bm.GetPixel(nameCoordX1, nameCoordY1) == NAME_WHITE && bm.GetPixel(nameCoordX3, nameCoordY3) == NAME_WHITE)
+            {
+                name = "Durdle";
+            }
+
+            eqWindowHandles[name] = windowHandle;
+            return name;
         }
     }
 }

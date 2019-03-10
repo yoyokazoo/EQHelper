@@ -77,7 +77,6 @@ namespace EQ_helper
         }
 
         Func<String, bool> updateStatus;
-        PlayerState currentPlayerState;
         PlayerState desiredBehaviorState = PlayerState.MURDERING_EVERYTHING;
 
         System.Media.SoundPlayer soundPlayer = new System.Media.SoundPlayer();
@@ -91,18 +90,17 @@ namespace EQ_helper
         public void KickOffCoreLoop()
         {
             //soundPlayer.Play();
-            updateStatus("Inside main loop");
-            currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+            //updateStatus("Inside main loop");
 
-            EQScreen.SetComputer(true);
-
-            ListenForTells();
+            //ListenForTells();
             //RogueLoopTask();
             //DruidLoopTask();
             //ClericLoopTask();
             //PyzjnLoopTask();
             //DmgShieldLoopTask();
-            CoreGameplayLoopTask();
+            //CoreGameplayLoopTask();
+
+            MultiAccountLoopTask();
         }
 
         async Task<PlayerState> ChangeStateBasedOnTaskResult(Task<bool> task, PlayerState successState, PlayerState failureState)
@@ -119,6 +117,22 @@ namespace EQ_helper
         public static bool CurrentTimeInsideDuration(long startTime, long duration)
         {
             return (DateTimeOffset.Now.ToUnixTimeMilliseconds() - startTime) < duration;
+        }
+
+        async Task<bool> MultiAccountLoopTask()
+        {
+            updateStatus("Kicking off dual account loop task");
+
+            foreach(String character in EQScreen.GetAllPlayerNames())
+            {
+                Console.WriteLine("Found character " + character);
+            }
+            EQScreen.SetNextCharacter();
+
+            DmgShieldLoopTask();
+            DruidLoopTask();
+
+            return true;
         }
 
         static void ListenForTells()
@@ -176,9 +190,17 @@ namespace EQ_helper
             lastFarmingLimitTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
 
             EQState currentEQState = EQState.GetCurrentEQState();
-            currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
+                if(EQScreen.currentCharacterName != "Yoyokazoo")
+                {
+                    await Task.Delay(100);
+                    continue;
+                }
+                await EQTask.FocusOnEQWindowTask();
+                currentEQState = EQState.GetCurrentEQState();
+
                 // always update EQState here?
                 switch (currentPlayerState)
                 {
@@ -204,10 +226,9 @@ namespace EQ_helper
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
-                        await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
                             PlayerState.CHECKING_FOR_PYZJN,
-                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                            PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.CHECKING_FOR_PYZJN:
                         updateStatus("Checking for Pyzjn");
@@ -244,6 +265,8 @@ namespace EQ_helper
                         currentPlayerState = PlayerState.CHECK_FARMING_TIME_LIMIT;
                         break;
                 }
+
+                EQScreen.SetNextCharacter();
             }
 
             updateStatus("Exited Core Gameplay, attempting to camp");
@@ -260,6 +283,8 @@ namespace EQ_helper
 
             updateStatus("Kicking off rogue loop");
             EQState currentEQState = EQState.GetCurrentEQState();
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
                 // always update EQState here?
@@ -313,7 +338,7 @@ namespace EQ_helper
                         await EQTask.RestUntilFullyHealedTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullyHealedTask(),
                             PlayerState.FINDING_SUITABLE_TARGET,
-                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                            PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -346,8 +371,18 @@ namespace EQ_helper
         {
             updateStatus("Kicking off druid loop");
             EQState currentEQState = EQState.GetCurrentEQState();
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
+                if (EQScreen.currentCharacterName != "Durdle")
+                {
+                    await Task.Delay(100);
+                    continue;
+                }
+                await EQTask.FocusOnEQWindowTask();
+                currentEQState = EQState.GetCurrentEQState();
+                
                 // always update EQState here?
                 switch (currentPlayerState)
                 {
@@ -371,25 +406,29 @@ namespace EQ_helper
                         currentPlayerState = PlayerState.CHECK_COMBAT_STATUS;
                         break;
                     case PlayerState.CHECK_COMBAT_STATUS:
-                        updateStatus("Focused on EQ Window");
+                        updateStatus("Checking combat status");
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
-                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.PULL_WITH_NUKE,
                             PlayerState.WAITING_FOR_MANA);
+                        break;
+                    case PlayerState.PULL_WITH_NUKE:
+                        updateStatus("Pulling with Nuke");
+                        await EQTask.PullWithSpellTask();
+                        await EQTask.EnterCombatTask();
+
+                        currentPlayerState = PlayerState.KILLING_TARGET_ASAP;
                         break;
                     case PlayerState.KILLING_TARGET_ASAP:
                         updateStatus("Killing target ASAP");
-                        await EQTask.PullWithSpellTask();
-                        await EQTask.EnterCombatTask();
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeUntilDeadTask(),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.NukeTask(),
                             PlayerState.ATTEMPT_TO_LOOT,
-                            PlayerState.ATTEMPT_TO_LOOT);
+                            PlayerState.KILLING_TARGET_ASAP);
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
-                        await EQTask.RestUntilFullManaTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
                             PlayerState.CASTING_BURNOUT_ON_PET,
-                            PlayerState.CHECK_FARMING_TIME_LIMIT);
+                            PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.CASTING_BURNOUT_ON_PET:
                         updateStatus("Casting burnout on pet and setting timer");
@@ -406,12 +445,12 @@ namespace EQ_helper
                         //bool foundTargetResult = await EQTask.FindNearestTargetTask(true);
                         bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
-                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.PULL_WITH_NUKE,
                             PlayerState.CHECK_COMBAT_STATUS);
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
@@ -422,6 +461,8 @@ namespace EQ_helper
                             PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                 }
+
+                EQScreen.SetNextCharacter();
             }
 
             updateStatus("Exited Core Gameplay, attempting to camp");
@@ -433,6 +474,8 @@ namespace EQ_helper
         {
             updateStatus("Kicking off cleric loop");
             EQState currentEQState = EQState.GetCurrentEQState();
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
                 // always update EQState here?
@@ -464,8 +507,9 @@ namespace EQ_helper
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
-                        await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
+                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
@@ -498,6 +542,7 @@ namespace EQ_helper
         {
             updateStatus("Kicking off cleric loop");
             EQState currentEQState = EQState.GetCurrentEQState();
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
@@ -607,8 +652,9 @@ namespace EQ_helper
 
             updateStatus("Kicking off core gameplay loop");
             EQState currentEQState = EQState.GetCurrentEQState();
+            PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
 
-            while(currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
+            while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
                 // always update EQState here?
                 switch (currentPlayerState)

@@ -24,6 +24,7 @@ namespace EQ_helper
 
         public bool updateStatus(String status)
         {
+            status = EQScreen.currentCharacterName + ": " + status;
             labelStatus5.Text = labelStatus4.Text;
             labelStatus4.Text = labelStatus3.Text;
             labelStatus3.Text = labelStatus2.Text;
@@ -39,6 +40,7 @@ namespace EQ_helper
         public Form1()
         {
             InitializeComponent();
+            EQScreen.Initialize();
             player = new EQPlayer(updateStatus);
 
             CurrentStateTimer = new System.Timers.Timer(300);
@@ -51,7 +53,7 @@ namespace EQ_helper
         {
             if (EQState.mostRecentState == null) { return; }
 
-            labelHealthPercentFilled.Text = EQState.mostRecentState.health.ToString(); ;
+            //labelHealthPercentFilled.Text = EQState.mostRecentState.health.ToString(); ;
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -66,21 +68,8 @@ namespace EQ_helper
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            /*
-            EQScreen.SetComputer(false);
-
-            // find window handles
-            Process[] ps = Process.GetProcessesByName("eqgame");
-            int processNum = 0;
-            foreach(Process p in ps)
-            {
-                Bitmap userBm = ScreenCapture.CaptureWindowBM(p.MainWindowHandle);
-                string name = EQScreen.GetNameFromBitmap(userBm);
-                Console.WriteLine("Process " + p.MainWindowTitle + " name = " + name);
-                ScreenCapture.CaptureWindowToFile(p.MainWindowHandle, "Test" + processNum + ".bmp", System.Drawing.Imaging.ImageFormat.Bmp);
-                processNum++;
-            }
-            */
+            
+            
 
             //StartBuyHouseLoop();
 
@@ -99,7 +88,7 @@ namespace EQ_helper
 
             //Console.WriteLine("BMTest width = " + bmTest.Width + " " + bmTest.Height);
             //ScreenCapture.CaptureWindowToFile(Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault().MainWindowHandle, "F14Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
-            ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+            //ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
 
             //EQState currentEQState = EQState.GetCurrentEQState();
 
