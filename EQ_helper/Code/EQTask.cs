@@ -549,5 +549,12 @@ namespace EQ_helper
             await Task.Delay(2000);
             return true;
         }
+
+        public static async Task<bool> ScoochForwardTask()
+        {
+            Keyboard.KeyPress(Keys.W, 65); await Task.Delay(500);
+
+            return true;
+        }
     }
 }

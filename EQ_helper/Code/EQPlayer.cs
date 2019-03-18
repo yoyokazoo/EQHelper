@@ -14,13 +14,16 @@ namespace EQ_helper
         private static long BURNOUT_TIME_MILLIS = (long)(14.5 * 60 * 1000); // - 30 secs
         private long lastBurnoutCastTime = 0;
 
+        private static long SKIN_LIKE_ROCK_MILLIS = (long)(25 * 60 * 1000); // - 30 secs
+        private long lastSkinLikeRockCastTime = 0;
+
         private static long ARCH_SHIELDING_TIME_MILLIS = (long)(1 * 60 * 60 * 1000); // - 30 secs
         private long lastArchShieldingCastTime = 0;
 
         private static long DMG_SHIELD_TIME_MILLIS = (long)(4 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
-        private static long FARMING_LIMIT_TIME_MILLIS = (long)(1.5 * 60 * 60 * 1000); // - 30 secs
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(2.5 * 60 * 60 * 1000); // - 30 secs
         private long lastFarmingLimitTime = 0;
 
         public enum PlayerState {
@@ -271,6 +274,7 @@ namespace EQ_helper
 
             updateStatus("Exited Core Gameplay, attempting to camp");
             await EQTask.CampTask();
+            EQScreen.SetNextCharacter();
             return true;
         }
 
@@ -431,10 +435,10 @@ namespace EQ_helper
                             PlayerState.WAITING_FOR_MANA);
                         break;
                     case PlayerState.CASTING_BURNOUT_ON_PET:
-                        updateStatus("Casting burnout on pet and setting timer");
-                        if (!CurrentTimeInsideDuration(lastBurnoutCastTime, BURNOUT_TIME_MILLIS))
+                        updateStatus("Casting skin like rock");
+                        if (!CurrentTimeInsideDuration(lastSkinLikeRockCastTime, SKIN_LIKE_ROCK_MILLIS))
                         {
-                            lastBurnoutCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
+                            lastSkinLikeRockCastTime = DateTimeOffset.Now.ToUnixTimeMilliseconds();
                             await EQTask.ApplyPetBuffTask();
                             await EQTask.RestTask();
                         }
@@ -450,6 +454,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
+                        await EQTask.ScoochForwardTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
@@ -467,6 +472,7 @@ namespace EQ_helper
 
             updateStatus("Exited Core Gameplay, attempting to camp");
             await EQTask.CampTask();
+            EQScreen.SetNextCharacter();
             return true;
         }
 
