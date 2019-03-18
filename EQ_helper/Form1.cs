@@ -68,8 +68,8 @@ namespace EQ_helper
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-            
-            
+
+
 
             //StartBuyHouseLoop();
 
@@ -84,7 +84,9 @@ namespace EQ_helper
             //Mouse.ButtonDown(Mouse.MouseKeys.Left); Thread.Sleep(50);
             //Mouse.ButtonUp(Mouse.MouseKeys.Left); Thread.Sleep(50);
 
-            //Bitmap bmTest = EQScreen.GetEQBitmap();
+            ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test1.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
+            EQScreen.SetNextCharacter();
+            ScreenCapture.CaptureWindowToFile(EQScreen.GetEQWindowHandle(), "Test2.bmp", System.Drawing.Imaging.ImageFormat.Bmp);
 
             //Console.WriteLine("BMTest width = " + bmTest.Width + " " + bmTest.Height);
             //ScreenCapture.CaptureWindowToFile(Process.GetProcessesByName("ffxiv_dx11").FirstOrDefault().MainWindowHandle, "F14Test.bmp", System.Drawing.Imaging.ImageFormat.Bmp);

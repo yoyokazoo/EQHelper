@@ -101,9 +101,9 @@ namespace EQ_helper
             //ClericLoopTask();
             //PyzjnLoopTask();
             //DmgShieldLoopTask();
-            //CoreGameplayLoopTask();
+            CoreGameplayLoopTask();
 
-            MultiAccountLoopTask();
+            //MultiAccountLoopTask();
         }
 
         async Task<PlayerState> ChangeStateBasedOnTaskResult(Task<bool> task, PlayerState successState, PlayerState failureState)
@@ -659,6 +659,7 @@ namespace EQ_helper
             updateStatus("Kicking off core gameplay loop");
             EQState currentEQState = EQState.GetCurrentEQState();
             PlayerState currentPlayerState = PlayerState.WAITING_TO_FOCUS;
+            EQScreen.currentCharacterName = "Yoyokazoo";
 
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
@@ -753,8 +754,9 @@ namespace EQ_helper
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting for mana");
-                        await EQTask.RestUntilFullManaTask();
-                        currentPlayerState = PlayerState.FINDING_SUITABLE_TARGET;
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.RestUntilFullManaTask(),
+                            PlayerState.FINDING_SUITABLE_TARGET,
+                            PlayerState.WAITING_FOR_MANA);
                         // set timer
                         /*
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.ApplyPetBuffTask(),
@@ -874,7 +876,8 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(true),
+                        
+                        currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
                         break;
