@@ -95,7 +95,7 @@ namespace EQ_helper
             //soundPlayer.Play();
             //updateStatus("Inside main loop");
 
-            //ListenForTells();
+            ListenForTells();
             //RogueLoopTask();
             //DruidLoopTask();
             //ClericLoopTask();
@@ -141,50 +141,55 @@ namespace EQ_helper
 
         static void ListenForTells()
         {
-            new Thread(() =>
+            foreach (String playerName in EQScreen.GetAllPlayerNames())
             {
-                Thread.CurrentThread.IsBackground = true;
+                if(playerName == "Unknown") { continue; }
 
-                String path = @"C:\Users\Peter\Desktop\eq\everquest_rof2\Logs\eqlog_Yoyokazoo_EQ Reborn.txt";
+                new Thread(() =>
+                {
+                    Thread.CurrentThread.IsBackground = true;
+
+                    String path = @"C:\Users\Peter\Desktop\eq\everquest_rof2\Logs\eqlog_" + playerName + "_EQ Reborn.txt";
                 // https://hooks.slack.com/services/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 // croc-bot incoming
 
                 //[Sun Feb 10 18:16:02 2019] Ghaleon tells you, 'neil is gettin close to my place'
                 Regex tellRx = new Regex(@"\[.*\] ([^\s]*) tells you, \'(.*)\'", RegexOptions.Compiled | RegexOptions.IgnoreCase);
 
-                using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                using (var sr = new StreamReader(fs, Encoding.Default))
-                {
-                    while (sr.ReadLine() != null) { }
-
-                    while (true)
+                    using (var fs = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs, Encoding.Default))
                     {
-                        string line = sr.ReadLine();
-                        if (line != null)
+                        while (sr.ReadLine() != null) { }
+
+                        while (true)
                         {
-                            Match tellMatch = tellRx.Match(line);
-
-                            if (tellMatch.Success)
+                            string line = sr.ReadLine();
+                            if (line != null)
                             {
-                                string name = tellMatch.Groups[1].Value;
-                                string message = tellMatch.Groups[2].Value;
+                                Match tellMatch = tellRx.Match(line);
 
-                                if (message.Contains("Master."))
+                                if (tellMatch.Success)
                                 {
+                                    string name = tellMatch.Groups[1].Value;
+                                    string message = tellMatch.Groups[2].Value;
 
+                                    if (message.Contains("Master."))
+                                    {
+
+                                    }
+                                    else
+                                    {
+                                        Console.WriteLine("You were sent a tell from " + name + " " + "'" + message + "'");
+                                        var slackMessage = name + " sent you a tell: " + message;
+                                        SlackHelper.SendSlackMessageAsync(slackMessage);
+                                    }
                                 }
-                                else
-                                {
-                                    Console.WriteLine("You were sent a tell from " + name + " " + "'" + message + "'");
-                                    var slackMessage = name + " sent you a tell: " + message;
-                                    SlackHelper.SendSlackMessageAsync(slackMessage);
-                                }
+
                             }
-
+                            Thread.Sleep(50);
                         }
-                        Thread.Sleep(50);
                     }
-                }
-            }).Start();
+                }).Start();
+            }
         }
 
         async Task<bool> DmgShieldLoopTask()
@@ -894,7 +899,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        
+                        await EQTask.ScoochForwardTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
