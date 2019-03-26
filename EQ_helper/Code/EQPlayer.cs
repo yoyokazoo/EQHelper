@@ -101,9 +101,9 @@ namespace EQ_helper
             //ClericLoopTask();
             //PyzjnLoopTask();
             //DmgShieldLoopTask();
-            CoreGameplayLoopTask();
+            //CoreGameplayLoopTask();
 
-            //MultiAccountLoopTask();
+            MultiAccountLoopTask();
         }
 
         async Task<PlayerState> ChangeStateBasedOnTaskResult(Task<bool> task, PlayerState successState, PlayerState failureState)
@@ -133,7 +133,8 @@ namespace EQ_helper
             EQScreen.SetNextCharacter();
 
             DmgShieldLoopTask();
-            DruidLoopTask();
+            //DruidLoopTask();
+            RogueLoopTask();
 
             return true;
         }
@@ -291,7 +292,14 @@ namespace EQ_helper
 
             while (currentPlayerState != PlayerState.EXITING_CORE_GAMEPLAY_LOOP)
             {
-                // always update EQState here?
+                if (EQScreen.currentCharacterName != "Trakklo")
+                {
+                    await Task.Delay(100);
+                    continue;
+                }
+                await EQTask.FocusOnEQWindowTask();
+                currentEQState = EQState.GetCurrentEQState();
+
                 switch (currentPlayerState)
                 {
                     case PlayerState.WAITING_TO_FOCUS:
@@ -324,18 +332,23 @@ namespace EQ_helper
                     case PlayerState.CHECK_COMBAT_STATUS:
                         updateStatus("Checking combat Status");
                         currentPlayerState = ChangeStateBasedOnBool(currentEQState.characterState == EQState.CharacterState.COMBAT,
-                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.PREPARED_FOR_BATTLE,
                             PlayerState.WAITING_FOR_MANA);
                         break;
-                    case PlayerState.KILLING_TARGET_ASAP:
+                    case PlayerState.PREPARED_FOR_BATTLE:
                         updateStatus("Killing target ASAP");
+                        await EQTask.ScoochForwardTask();
                         await EQTask.PullWithThrowingWeaponTask();
                         await EQTask.EnterCombatTask();
                         await EQTask.EnterCombatTask();
                         await EQTask.EnterCombatTask();
+                        currentPlayerState = PlayerState.KILLING_TARGET_ASAP;
+                        break;
+                    case PlayerState.KILLING_TARGET_ASAP:
+                        updateStatus("Killing target ASAP");
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LevelSkillUntilDeadTask(),
                             PlayerState.ATTEMPT_TO_LOOT,
-                            PlayerState.ATTEMPT_TO_LOOT);
+                            PlayerState.KILLING_TARGET_ASAP);
                         break;
                     case PlayerState.WAITING_FOR_MANA:
                         updateStatus("Resting until fuly healed");
@@ -346,13 +359,15 @@ namespace EQ_helper
                         break;
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
-                        bool foundTargetResult = await EQTask.FindNearestTargetTask(false);
+                        //bool foundTargetResult = await EQTask.FindNearestTargetTask(false);
+                        bool foundTargetResult = await EQTask.FindAnyTargetWithMacroTask();
                         currentPlayerState = ChangeStateBasedOnBool(foundTargetResult,
-                            PlayerState.KILLING_TARGET_ASAP,
+                            PlayerState.PREPARED_FOR_BATTLE,
                             PlayerState.CHECK_COMBAT_STATUS);
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
+                        await EQTask.ScoochForwardTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
@@ -364,10 +379,13 @@ namespace EQ_helper
                             PlayerState.CHECK_FARMING_TIME_LIMIT);
                         break;
                 }
+
+                EQScreen.SetNextCharacter();
             }
 
             updateStatus("Exited Core Gameplay, attempting to camp");
             await EQTask.CampTask();
+            EQScreen.SetNextCharacter();
             return true;
         }
 

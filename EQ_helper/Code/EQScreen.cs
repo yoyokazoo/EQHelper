@@ -235,7 +235,7 @@ namespace EQ_helper
             {
                 name = "Yoyokazoo";
             }
-            else if(bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE && bm.GetPixel(nameCoordX3, nameCoordY3) == NAME_GREY)
+            else if(bm.GetPixel(nameCoordX2, nameCoordY2) == NAME_WHITE && ScreenCapture.colorsAlmostMatch(bm.GetPixel(nameCoordX3, nameCoordY3), NAME_GREY, 5))
             {
                 name = "Trakklo";
             }

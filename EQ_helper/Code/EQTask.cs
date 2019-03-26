@@ -37,7 +37,7 @@ namespace EQ_helper
         const Keys BUFF_PET_KEY = Keys.D8;
         const Keys HIDE_CORPSES_KEY = Keys.D9;
         const Keys FIND_SPECIAL_MOB_KEY = Keys.D0;
-        const Keys HEAL_PET_KEY = Keys.OemMinus;
+        const Keys HEAL_PET_KEY = Keys.OemMinus; // Pull with Ranged Weapon
         const Keys GATE_KEY = Keys.Oemplus;
 
         const Keys TARGET_SELF_KEY = Keys.F1;
@@ -170,16 +170,10 @@ namespace EQ_helper
 
         public static async Task<bool> LevelSkillUntilDeadTask()
         {
-            EQState currentState = EQState.GetCurrentEQState();
-            int levelSkillAttempts = 1;
-            while (currentState.targetHealth > 0.00 && levelSkillAttempts < 50)
-            {
-                levelSkillAttempts++;
-                await LevelUpSkillTask();
-                currentState = EQState.GetCurrentEQState();
-            }
+            await LevelUpSkillTask(); await Task.Delay(5000);
 
-            return true;
+            EQState currentState = EQState.GetCurrentEQState();
+            return (currentState.targetHealth <= 0.00);
         }
 
         public static async Task<bool> EnterCombatTask()
@@ -544,7 +538,7 @@ namespace EQ_helper
 
         public static async Task<bool> PullWithThrowingWeaponTask()
         {
-            Keyboard.KeyPress(Keys.OemMinus); await Task.Delay(1000);
+            Keyboard.KeyPress(HEAL_PET_KEY); await Task.Delay(1000);
 
             await Task.Delay(2000);
             return true;
