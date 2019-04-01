@@ -23,7 +23,7 @@ namespace EQ_helper
         private static long DMG_SHIELD_TIME_MILLIS = (long)(4 * 60 * 1000); // - 30 secs
         private long lastDmgShieldCastTime = 0;
 
-        private static long FARMING_LIMIT_TIME_MILLIS = (long)(2.5 * 60 * 60 * 1000); // - 30 secs
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(8.5 * 60 * 60 * 1000); // - 30 secs
         private long lastFarmingLimitTime = 0;
 
         public enum PlayerState {
@@ -101,9 +101,11 @@ namespace EQ_helper
             //ClericLoopTask();
             //PyzjnLoopTask();
             //DmgShieldLoopTask();
-            //CoreGameplayLoopTask();
+            CoreGameplayLoopTask();
 
-            MultiAccountLoopTask();
+
+
+            //MultiAccountLoopTask();
         }
 
         async Task<PlayerState> ChangeStateBasedOnTaskResult(Task<bool> task, PlayerState successState, PlayerState failureState)
@@ -327,7 +329,7 @@ namespace EQ_helper
                         }
 
                         creaturesPulled++;
-                        if(creaturesPulled % 20 == 0)
+                        if(creaturesPulled % 30 == 0)
                         {
                             SlackHelper.SendSlackMessageAsync("Out of daggers, go refill");
                             currentPlayerState = PlayerState.EXITING_CORE_GAMEPLAY_LOOP;
@@ -362,6 +364,10 @@ namespace EQ_helper
                             PlayerState.FINDING_SUITABLE_TARGET,
                             PlayerState.WAITING_FOR_MANA);
                         break;
+                        if(currentEQState.characterState == EQState.CharacterState.COMBAT) {
+                            SlackHelper.SendSlackMessageAsync("Attacked while resting, something's probably wrong.");
+                            currentPlayerState = PlayerState.PREPARED_FOR_BATTLE;
+                        }
                     case PlayerState.FINDING_SUITABLE_TARGET:
                         updateStatus("Finding Suitable Target");
                         //bool foundTargetResult = await EQTask.FindNearestTargetTask(false);
@@ -372,7 +378,7 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        await EQTask.ScoochForwardTask();
+                        //await EQTask.ScoochForwardTask();
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
@@ -899,7 +905,11 @@ namespace EQ_helper
                         break;
                     case PlayerState.ATTEMPT_TO_LOOT:
                         updateStatus("Attempting to loot");
-                        await EQTask.ScoochForwardTask();
+                        Random r = new Random();
+                        if (r.Next() % 2 == 0)
+                        {
+                            await EQTask.ScoochForwardTask();
+                        }
                         currentPlayerState = await ChangeStateBasedOnTaskResult(EQTask.LootTask(false),
                             PlayerState.HIDE_CORPSES,
                             PlayerState.HIDE_CORPSES);
