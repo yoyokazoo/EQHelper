@@ -11,19 +11,19 @@ namespace EQ_helper
 {
     public class EQPlayer
     {
-        private static long BURNOUT_TIME_MILLIS = (long)(14.5 * 60 * 1000); // - 30 secs
+        private static long BURNOUT_TIME_MILLIS = (long)(14.5 * 60 * 1000);
         private long lastBurnoutCastTime = 0;
 
-        private static long SKIN_LIKE_ROCK_MILLIS = (long)(25 * 60 * 1000); // - 30 secs
+        private static long SKIN_LIKE_ROCK_MILLIS = (long)(25 * 60 * 1000);
         private long lastSkinLikeRockCastTime = 0;
 
-        private static long ARCH_SHIELDING_TIME_MILLIS = (long)(1 * 60 * 60 * 1000); // - 30 secs
+        private static long ARCH_SHIELDING_TIME_MILLIS = (long)(1 * 60 * 60 * 1000);
         private long lastArchShieldingCastTime = 0;
 
-        private static long DMG_SHIELD_TIME_MILLIS = (long)(4 * 60 * 1000); // - 30 secs
+        private static long DMG_SHIELD_TIME_MILLIS = (long)(4 * 60 * 1000);
         private long lastDmgShieldCastTime = 0;
 
-        private static long FARMING_LIMIT_TIME_MILLIS = (long)(8.5 * 60 * 60 * 1000); // - 30 secs
+        private static long FARMING_LIMIT_TIME_MILLIS = (long)(8.5 * 60 * 60 * 1000);
         private long lastFarmingLimitTime = 0;
 
         public enum PlayerState {
